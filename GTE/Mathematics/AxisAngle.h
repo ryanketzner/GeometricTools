@@ -38,4 +38,15 @@ namespace gte
         Vector<N, Real> axis;
         Real angle;
     };
+    
+    // Addon to GeometricTools
+    // 
+    template <typename Real>
+    Vector<3,Real> Rotate(AxisAngle<3,Real> const& att, Vector<3, Real> const& v)
+    {
+    	Real sn = std::sin(att.angle);
+    	Real cs = std::cos(att.angle);
+    	
+    	return v*cs + Cross(att.axis,v)*sn + att.axis*Dot(att.axis,v)*((Real)1 - cs);
+    }
 }
