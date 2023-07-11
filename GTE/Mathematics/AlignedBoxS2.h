@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <array>
 #include "Mathematics/Math.h"
 
 namespace gte
@@ -167,6 +168,13 @@ namespace gte
             latMin = -GTE_C_HALF_PI;
             lonMin = -GTE_C_PI;
             lonMax = GTE_C_PI;
+        }
+
+        std::array<AlignedBoxS2<Real>,2> Split() const
+        {
+            AlignedBoxS2<Real> first(latMin,latMax,lonMin, (Real)GTE_C_PI);
+            AlignedBoxS2<Real> second(latMin,latMax, (Real)-GTE_C_PI, lonMax);
+            return {first,second};
         }
 
         Real latMin, latMax, lonMin, lonMax;

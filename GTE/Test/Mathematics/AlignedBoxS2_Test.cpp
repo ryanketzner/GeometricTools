@@ -75,3 +75,21 @@ TEST(TestAlignedBoxS2, TestClockwiseDist)
     expected = GTE_C_PI;
     EXPECT_EQ(expected,ClockwiseDist(lon1,lon2));
 }
+
+// Construct an aligned box from 0 to Pi/4 lat, Pi/2 to Pi/4 lon
+// verify that it is inverted and split it into two non-inverted boxes
+TEST(TestAlignedBoxS2, TestSplit)
+{
+    double latMin = 0.0, latMax = GTE_C_QUARTER_PI;
+    double lonMin = GTE_C_HALF_PI, lonMax = GTE_C_QUARTER_PI;
+    AlignedBoxS2<double> box(latMin,latMax,lonMin,lonMax);
+
+    auto split_boxes = box.Split();
+    AlignedBoxS2<double> first = split_boxes[0];
+    AlignedBoxS2<double> second = split_boxes[1];
+
+    EXPECT_EQ(first.lonMin,box.lonMin);
+    EXPECT_EQ(first.lonMax,GTE_C_PI);
+    EXPECT_EQ(second.lonMin,-GTE_C_PI);
+    EXPECT_EQ(second.lonMax,box.lonMax);
+}
