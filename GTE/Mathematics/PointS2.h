@@ -20,12 +20,12 @@ namespace gte
             lon = lonIn;
         }
 
-        Real Lat()
+        Real Lat() const
         {
             return lat;
         }
 
-        Real Lon()
+        Real Lon() const
         {
             return lon;
         }

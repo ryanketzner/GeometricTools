@@ -92,4 +92,7 @@ TEST(TestAlignedBoxS2, TestSplit)
     EXPECT_EQ(first.lonMax,GTE_C_PI);
     EXPECT_EQ(second.lonMin,-GTE_C_PI);
     EXPECT_EQ(second.lonMax,box.lonMax);
+
+    EXPECT_FALSE(first.IsInverted());
+    EXPECT_FALSE(second.IsInverted());
 }
