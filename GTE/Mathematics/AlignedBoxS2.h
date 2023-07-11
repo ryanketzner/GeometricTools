@@ -63,6 +63,21 @@ namespace gte
                 (Real)-GTE_C_PI, (Real)GTE_C_PI);
         }
 
+        // Returns the longitudinal length of the box in radians
+        Real LonLength() const
+        {
+            return ClockwiseDist(lonMin,lonMax);
+        }
+
+        // Returns the latitudinal length of the box in radians
+        Real LatLength() const
+        {
+            if (IsEmptyLat())
+                return (Real)0;
+            else
+                return latMax - latMin;
+        }
+
         // Empty lon interval goes from Pi/2 to -Pi/2 (180 to -180 deg)
         bool IsEmpty() const
         {
@@ -179,5 +194,13 @@ namespace gte
 
         Real latMin, latMax, lonMin, lonMax;
 
+    public:
+        // Comparisons to support sorted containers
+
+        bool operator==(AlignedBoxS2 const& box) const
+        {
+            return latMin == box.latMin && latMax == box.latMax && lonMin ==
+                box.lonMin && lonMax == box.lonMax;
+        }
     };
 }

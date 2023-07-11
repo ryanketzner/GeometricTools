@@ -96,3 +96,15 @@ TEST(TestAlignedBoxS2, TestSplit)
     EXPECT_FALSE(first.IsInverted());
     EXPECT_FALSE(second.IsInverted());
 }
+
+// Construct an aligned box from 0 to Pi/4 lat, -Pi/2 to Pi/2 lon
+// Verify that the longitude length is Pi
+TEST(TestAlignedBoxS2, TestLonLength)
+{
+    double latMin = 0.0, latMax = GTE_C_QUARTER_PI;
+    double lonMin = -GTE_C_HALF_PI, lonMax = GTE_C_HALF_PI;
+    AlignedBoxS2<double> box(latMin,latMax,lonMin,lonMax);
+
+    double expected_length = GTE_C_PI;
+    EXPECT_EQ(expected_length,box.LonLength());
+}
