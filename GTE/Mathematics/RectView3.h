@@ -20,6 +20,17 @@ namespace gte
     {
     public:
 
+        RectView3()
+            :
+            uVector(0),
+            rVector(1),
+            vertex({(Real)0}),
+            angleHeight((Real)GTE_C_QUARTER_PI),
+            angleWidth((Real)GTE_C_QUARTER_PI)
+        {
+            Update();
+        }
+
         RectView3(Vector3<Real> const& inUVector, 
             Vector3<Real> const& inRVector, Vector3<Real> const& inVertex,
             Real inAngleHeight, Real inAngleWidth)
