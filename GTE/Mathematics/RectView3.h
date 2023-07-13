@@ -4,6 +4,8 @@
 #include "Vector3.h"
 #include "AxisAngle.h"
 #include "Halfspace.h"
+#include "Ray.h"
+
 #include <Mathematics/Logger.h>
 
 // A rectangular field of view. The field of view orientation is represented
@@ -89,6 +91,21 @@ namespace gte
         Real GetAngleWidth()
         {
             return angleWidth;
+        }
+
+        // Get the corners of the RectView. These correspond to the vertices of
+        // the spherical polygon representation of the RectView. The vertices
+        // are given in counter-clockwise order about the boresight
+        void GetCorners(std::array<Ray3<Real>,4>& corners)
+        {
+            corners[0] = Ray3<Real>(vertex,
+                Cross(halfspaces[1].normal, halfspaces[0].normal));
+            corners[1] = Ray3<Real>(vertex,
+                Cross(halfspaces[2].normal, halfspaces[1].normal));
+            corners[2] = Ray3<Real>(vertex,
+                Cross(halfspaces[3].normal, halfspaces[2].normal));
+            corners[3] = Ray3<Real>(vertex,
+                Cross(halfspaces[0].normal, halfspaces[3].normal));
         }
 
         Vector3<Real> uVector, rVector, vertex;
