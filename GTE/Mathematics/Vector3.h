@@ -91,6 +91,41 @@ namespace gte
 
         return (Real)0;
     }
+    
+    // Addon to GeometricTools
+    // Assumes that the vector v is already normalized
+    // Given some input unit vector v, computes the orthonormal basis with
+    // v as the third unit vector
+    template <typename Real>
+    std::array<Vector3<Real>,2> ComputeOrthogonalComplement(Vector3<Real> const& v)
+    {
+    	Real x = v[0], y = v[1], z = v[2];
+    	std::array<Vector3<Real>,2> output;
+
+    	if (std::fabs(x) > std::fabs(y) && std::fabs(y) > std::fabs(z))
+    	{
+			// x has the largest absolute magnitude
+			Real denom = std::sqrt(x*x + y*y);
+			output[0] = {y/denom, -x/denom, (Real)0};
+		}
+    	else if (std::fabs(y) > std::fabs(x) && std::fabs(y) > std::fabs(z))
+    	{
+			// y has the largest absolute magnitude
+			Real denom = std::sqrt(y*y + z*z);
+			output[0] = {(Real)0, z/denom, -y/denom};
+    	}
+    	else
+    	{
+		    // z has the largest absolute magnitude
+			Real denom = std::sqrt(x*x + z*z);
+			output[0] = {-z/denom, (Real)0, x/denom};
+    	}
+    	
+    	output[1] = Cross(v,output[0]);
+    	
+    	return output;
+    }
+    
 
     // Compute the barycentric coordinates of the point P with respect to the
     // tetrahedron <V0,V1,V2,V3>, P = b0*V0 + b1*V1 + b2*V2 + b3*V3, where
