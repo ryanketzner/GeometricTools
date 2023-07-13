@@ -81,6 +81,16 @@ namespace gte
                 halfspace.constant = Dot(halfspace.normal,vertex);
         }
 
+        Real GetAngleHeight()
+        {
+            return angleHeight;
+        }
+
+        Real GetAngleWidth()
+        {
+            return angleWidth;
+        }
+
         Vector3<Real> uVector, rVector, vertex;
         std::array<Halfspace3<Real>,4> halfspaces;
 
