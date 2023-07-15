@@ -35,13 +35,16 @@ namespace gte
         Real lat,lon;
     };
 
+    // Takes arbitrary cartesian vector v as input
+    // returns the longitude and latitude of v, which is guaranteed to be in
+    // the range [-Pi/2, Pi/2] and [-Pi to Pi]
     template <typename Real>
     PointS2<Real> CartToGeographic(Vector3<Real> const& v)
     {
         // atan2 returns value from -Pi to Pi
         Real lon = std::atan2(v[1], v[0]);
         // asin returns value from -Pi/2 to Pi/2
-        Real lat = std::asin(v[2]);
+        Real lat = std::asin(v[2]/Length(v));
 
         return PointS2<Real>(lat, lon);
     }
