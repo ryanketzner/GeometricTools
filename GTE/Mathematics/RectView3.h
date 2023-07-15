@@ -83,12 +83,12 @@ namespace gte
                 halfspace.constant = Dot(halfspace.normal,vertex);
         }
 
-        Real GetAngleHeight()
+        Real GetAngleHeight() const
         {
             return angleHeight;
         }
 
-        Real GetAngleWidth()
+        Real GetAngleWidth() const
         {
             return angleWidth;
         }
@@ -96,7 +96,7 @@ namespace gte
         // Get the corners of the RectView. These correspond to the vertices of
         // the spherical polygon representation of the RectView. The vertices
         // are given in counter-clockwise order about the boresight
-        void GetCorners(std::array<Ray3<Real>,4>& corners)
+        void GetCorners(std::array<Ray3<Real>,4>& corners) const
         {
             corners[0] = Ray3<Real>(vertex,
                 Cross(halfspaces[1].normal, halfspaces[0].normal));
