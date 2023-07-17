@@ -99,7 +99,9 @@ namespace gte
     template <typename Real>
     std::array<Vector3<Real>,2> ComputeOrthogonalComplement(Vector3<Real> const& v)
     {
-    	Real x = v[0], y = v[1], z = v[2];
+        Vector3<Real> v_unit = v;
+        Normalize(v_unit, false);
+    	Real x = v_unit[0], y = v_unit[1], z = v_unit[2];
     	std::array<Vector3<Real>,2> output;
 
     	if (std::fabs(x) > std::fabs(y) && std::fabs(y) > std::fabs(z))
@@ -121,7 +123,7 @@ namespace gte
 			output[0] = {-z/denom, (Real)0, x/denom};
     	}
     	
-    	output[1] = Cross(v,output[0]);
+    	output[1] = Cross(v_unit,output[0]);
     	
     	return output;
     }
