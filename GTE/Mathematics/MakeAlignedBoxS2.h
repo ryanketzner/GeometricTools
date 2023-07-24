@@ -8,6 +8,7 @@
 #include <Mathematics/ContHalfspace.h>
 #include <Mathematics/MakeHalfspace.h>
 #include <Mathematics/IntrRay3Sphere3.h>
+#include <Mathematics/IntrRay3Ellipsoid3.h>
 #include <Mathematics/MakeHalfspace.h>
 #include <Mathematics/Cone.h>
 #include <Mathematics/ContRectView3Cone3.h>
@@ -92,6 +93,57 @@ namespace gte
             box.ToSouthPolarCap();
 
         return box;
+    }
+
+    template <typename Real>
+    AlignedBoxS2<Real> MakeFootprintBoxS2(RectView3<Real> const& view, 
+        Ellipsoid3<Real> const& ellipsoid)
+    {
+        // Get the rays of the rectangular view
+        std::array<Ray3<Real>,4> corners;
+        view.GetCorners(corners);
+
+        // Get the projection of the corners on the sphere
+        FIQuery<Real,Ray3<Real>,Ellipsoid3<Real>> query;
+        std::vector<PointS2<Real>> points;
+        for (int i = 0; i < 4; i++)
+        {
+            auto result = query(corners[i],ellipsoid);
+            if (result.intersect)
+                points.emplace_back(CartToGeographic(result.point[0]));
+            else
+            {
+                // If any ray fails to intersect, return Full box
+                return AlignedBoxS2<Real>::Full();
+            }
+        }
+
+        // Get the spherical box which bounds the projected points
+        AlignedBoxS2<Real> box;
+        GetContainer(points,box);
+
+        // Horizon of visible points on the sphere, as seen by the RectView3
+        // origin
+        Halfspace3<Real> polar = MakePolarHalfspace3(view.vertex, ellipsoid);
+
+        // If north pole is visibile;
+        Vector3<Real> north = ellipsoid.axis[2]*ellipsoid.extent[2];
+        if (InContainer(north, polar))
+            box.ToNorthPolarCap();
+        // If south pole is visible
+        else if (InContainer(-north, polar))
+            box.ToSouthPolarCap();
+
+        return box;
+    }
+
+    template <typename Real>
+    AlignedBoxS2<Real> MakeFootprintBoxS2(Cone3<Real> const& cone, 
+        Ellipsoid3<Real> const& ellipsoid)
+    {
+        RectView3<Real> view;
+        GetContainer(cone, view);
+        return MakeFootprintBoxS2(view, ellipsoid);
     }
 
     template <typename Real>

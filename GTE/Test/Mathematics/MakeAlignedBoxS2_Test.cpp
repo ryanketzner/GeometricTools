@@ -5,13 +5,14 @@
 #include "Mathematics/ContAlignedBoxS2.h"
 #include "Mathematics/ContRectView3.h"
 #include "Mathematics/GridHypersphere.h"
+#include "Mathematics/GridHyperellipsoid.h"
 #include "Mathematics/ContCone.h"
 
 using namespace gte;
 
 // Make a RectView3 with position at x = 7000, pointing opposite the x-axis
 // Test that the resulting AlignedBoxS2 contains the x-axis.
-TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2)
+TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_Sphere)
 {
     Vector3<double> pos({7000.0, 0.0, 0.0});
     Vector3<double> u((int)2); // z
@@ -26,6 +27,28 @@ TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2)
 
     // Test that box contains the x-axis
     Vector3<double> x_c = Vector3<double>((int)0);
+    EXPECT_TRUE(InContainer(CartToGeographic(x_c), box));
+}
+
+// Make a RectView3 with position at x = 7000, pointing opposite the x-axis
+// Test that the resulting AlignedBoxS2 contains the x-axis.
+TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_Ellipsoid)
+{
+    Vector3<double> pos({7000.0, 0.0, 0.0});
+    Vector3<double> u((int)2); // z
+    Vector3<double> r((int)1); // y
+    double angle = GTE_C_QUARTER_PI;
+    RectView3<double> view(u, r, pos, angle, angle);
+
+    Vector3<double> extent({6357.0,6357.0,6378.0});;
+    Ellipsoid3<double> ellipsoid;
+    ellipsoid.extent = extent;
+
+    AlignedBoxS2<double> box = MakeFootprintBoxS2(view,ellipsoid);
+
+    // Test that box contains the x-axis
+    Vector3<double> x_c = Vector3<double>((int)0);
+    EXPECT_TRUE(InContainer(CartToGeographic(x_c), box));
 }
 
 
@@ -33,14 +56,14 @@ TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2)
 // Create a sphere centered at the origin with radius 6378. Create a random
 // grid on the sphere with a million points, and verify that each point
 // contained by view and its polar halfspace is contained by the footprint box.
-TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_2)
+TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_Sphere_2)
 {   
     unsigned int seed = 1;
 
     Vector3<double> pos({7000.0, 0.0, 0.0});
     Vector3<double> u((int)2); // z
     Vector3<double> r((int)1); // y
-    double angle = GTE_C_QUARTER_PI*(3.0);
+    double angle = GTE_C_QUARTER_PI;
     RectView3<double> view(u, r, pos, angle, angle);
 
     double radius = 6378;
@@ -64,11 +87,46 @@ TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_2)
 
 }
 
+// Make a RectView3 with position at x = 7000, pointing opposite the x-axis.
+// Create an oblate spheroid with minor axis 6357, major 6378. Create a random
+// grid on the ellipsoid with a million points, and verify that each point
+// contained by view and its polar halfspace is contained by the footprint box.
+TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_Ellipsoid_2)
+{   
+    unsigned int seed = 1;
+
+    Vector3<double> pos({7000.0, 0.0, 0.0});
+    Vector3<double> u((int)2); // z
+    Vector3<double> r((int)1); // y
+    double angle = GTE_C_QUARTER_PI;
+    RectView3<double> view(u, r, pos, angle, angle);
+
+    Vector3<double> extent({6357.0,6357.0,6378.0});;
+    Ellipsoid3<double> ellipsoid;
+    ellipsoid.extent = extent;
+
+    AlignedBoxS2<double> box = MakeFootprintBoxS2(view,ellipsoid);
+
+    // Test that box contains every point that the view contains
+    int num = 1000000;
+    std::vector<Vector3<double>> grid = RandomSurfaceGrid(num,ellipsoid,seed);
+    Halfspace3<double> polar = MakePolarHalfspace3(pos,ellipsoid);
+
+    for (const auto& point : grid)
+    {
+        if (InContainer(point,view) && InContainer(point,polar))
+            EXPECT_TRUE(InContainer(CartToGeographic(point),box));
+    }
+
+    std::cout << box.latMin << "," << box.latMax << std::endl;
+    std::cout << box.lonMin << "," << box.lonMax << std::endl;
+}
+
 // Make a RectView3 with position at z = 7000, pointing opposite the z-axis.
 // Create a sphere centered at the origin with radius 6378. Create a random
 // grid on the sphere with a million points, and verify that each point
 // contained by view and its polar halfspace is contained by the footprint box.
-TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_3)
+TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_Sphere_3)
 {   
     unsigned int seed = 1;
 
@@ -102,7 +160,7 @@ TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_3)
 // centered at the origin with radius 6378. Create a random grid on the sphere
 // with a million points, and verify that each point contained by the polar 
 // halfspace is contained by the footprint box
-TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_4)
+TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_Sphere_4)
 {
     int seed;
 
@@ -132,7 +190,7 @@ TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_4)
 // centered at the origin with radius 6378. Create a random grid on the sphere
 // with a million points, and verify that each point contained by the polar 
 // halfspace is contained by the footprint box
-TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_5)
+TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_Sphere_5)
 {
     int seed;
 
@@ -162,7 +220,7 @@ TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_5)
 // grid on the sphere with a million points, and verify that each point
 // contained by view and its polar halfspace is contained by the footprint box.
 // The cone's half-angle is Pi/4;
-TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_6)
+TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_Sphere_6)
 {
     int seed;
 
