@@ -194,7 +194,7 @@ TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_Sphere_5)
 {
     int seed;
 
-    Vector3<double> pos({7000.0, 0.0, 0.0});
+    Vector3<double> pos({6000.0,0.0,3000.0});
 
     double radius = 6378;
     Sphere3<double> sphere({Vector3<double>::Zero(), radius});

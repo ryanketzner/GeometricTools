@@ -37,17 +37,33 @@ namespace gte
             return {-GTE_C_HALF_PI,maxLat,-GTE_C_PI,GTE_C_PI};
         
         // Calulate min and max longitudes
-        Vector3<Real> z((int)2);
-        AxisAngle<3,Real> zRot(z, angle);
-        Vector3<Real> right = Rotate(zRot, centered);
-        zRot.angle = -angle;
-        Vector3<Real> left = Rotate(zRot, centered);
+        // Vector3<Real> z((int)2);
+        // AxisAngle<3,Real> zRot(z, angle);
+        // Vector3<Real> right = Rotate(zRot, centered);
+        // zRot.angle = -angle;
+        // Vector3<Real> left = Rotate(zRot, centered);
+        Real sin_angle = sin(angle);
+        Real sin_colat = cos(pointGeographic.Lat());
+        Real dLon = asin(sin_angle/sin_colat);
+
+        Real maxLon = pointGeographic.Lon() + dLon;
+        if (maxLon >= GTE_C_PI) maxLon -= GTE_C_TWO_PI;
+        else if (maxLon <= -GTE_C_PI) maxLon += GTE_C_TWO_PI;
+
+        Real minLon = pointGeographic.Lon() - dLon;
+        if (minLon >= GTE_C_PI) minLon -= GTE_C_TWO_PI;
+        else if (minLon <= -GTE_C_PI) minLon += GTE_C_TWO_PI;
 
         AlignedBoxS2<Real> box;
         box.Expand(minLat, pointGeographic.Lon());
         box.Expand(maxLat, pointGeographic.Lon());
-        box.Expand(pointGeographic.Lat(), CartToGeographic(left).Lon());
-        box.Expand(pointGeographic.Lat(), CartToGeographic(right).Lon());
+        box.Expand(pointGeographic.Lat(), minLon);
+        box.Expand(pointGeographic.Lat(), maxLon);
+
+        // box.Expand(minLat, pointGeographic.Lon());
+        // box.Expand(maxLat, pointGeographic.Lon());
+        // box.Expand(pointGeographic.Lat(), CartToGeographic(left).Lon());
+        // box.Expand(pointGeographic.Lat(), CartToGeographic(right).Lon());
 
         return box;
     }
