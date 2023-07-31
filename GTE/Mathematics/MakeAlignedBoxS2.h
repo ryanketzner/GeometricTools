@@ -12,7 +12,9 @@
 #include <Mathematics/MakeHalfspace.h>
 #include <Mathematics/Cone.h>
 #include <Mathematics/ContRectView3Cone3.h>
+#include <Mathematics/Hyperplane.h>
 
+#include <iostream>
 
 namespace gte
 {
@@ -70,6 +72,108 @@ namespace gte
 
     template <typename Real>
     AlignedBoxS2<Real> MakeFootprintBoxS2(RectView3<Real> const& view, 
+        Sphere3<Real> const& sphere)
+    {
+        // Get the rays of the rectangular view
+        std::array<Ray3<Real>,4> corners;
+        view.GetCorners(corners);
+        const auto& halfspaces = view.halfspaces;
+
+        // Get the projection of the corners on the sphere
+        FIQuery<Real,Ray3<Real>,Sphere3<Real>> query;
+        std::vector<Vector3<Real>> points;
+        points.reserve(8);
+        for (int i = 0; i < 4; i++)
+        {
+            auto result = query(corners[i],sphere);
+            if (result.intersect)
+                points.emplace_back(result.point[0]);
+            else
+            {
+                // If any ray fails to intersect, return Full box
+                //return AlignedBoxS2<Real>::Full();
+                return MakeFootprintBoxS2(view.vertex, sphere);
+            }
+        }
+
+        // New Code
+        FIQuery<Real,Line3<Real>,Sphere3<Real>> line_query;
+        Vector3<Real> z((int)2);
+        Vector3<Real> circ_center;
+        for (int i = 0; i < 4; i++)
+        {
+            PointS2<Real> p_geo = CartToGeographic(points[i]);
+            int i1 = i-1;
+            if (i1 == -1)
+                i1 = 3;
+
+            // Longitude
+            if (InContainer(sphere.center, halfspaces[i]))
+                circ_center = -halfspaces[i].normal*sphere.radius;
+            else
+                circ_center = halfspaces[i].normal*sphere.radius;
+            
+            Plane3<Real> lat_plane(Vector3<Real>((int)2), circ_center[2]);
+            Vector3<Real> normal = Cross(z, circ_center);
+            Normalize(normal);
+            Plane3<Real> lon_plane(normal, (Real)0);
+
+            if (!SameSide(lat_plane, points[i1], points[i]))
+            {
+                normal = Cross(lat_plane.normal,halfspaces[i].normal);
+                Normalize(normal);
+                Line3<Real> line({view.vertex, normal});
+
+                auto result = line_query(line,sphere);
+                if (result.intersect)
+                {
+                    if (std::abs(result.parameter[0]) < std::abs(result.parameter[1]))
+                        points.emplace_back(result.point[0]);
+                    else
+                        points.emplace_back(result.point[1]);
+                }
+                //else 
+                    //std::cout << "Error." << std::endl;
+            }
+
+            if (!SameSide(lon_plane, points[i1], points[i]))
+            {
+                Line3<Real> line({view.vertex,
+                    Cross(lon_plane.normal,halfspaces[i].normal)});
+
+                auto result = line_query(line,sphere);
+                if (result.intersect)
+                {
+                    if (std::abs(result.parameter[0]) < std::abs(result.parameter[1]))
+                        points.emplace_back(result.point[0]);
+                    else
+                        points.emplace_back(result.point[1]);
+                }
+            }
+        }
+    
+
+        // Get the spherical box which bounds the projected points
+        AlignedBoxS2<Real> box;
+        GetContainer(points,box);
+
+        // Horizon of visible points on the sphere, as seen by the RectView3
+        // origin
+        Halfspace3<Real> polar = MakePolarHalfspace3(view.vertex, sphere);
+
+        // If north pole is visibile;
+        Vector3<Real> north({(Real)0, (Real)0, sphere.radius});
+        if (InContainer(north, polar))
+            box.ToNorthPolarCap();
+        // If south pole is visible
+        else if (InContainer(-north, polar))
+            box.ToSouthPolarCap();
+
+        return box;
+    }
+
+    template <typename Real>
+    AlignedBoxS2<Real> MakeFootprintBoxS2_Old(RectView3<Real> const& view, 
         Sphere3<Real> const& sphere)
     {
         // Get the rays of the rectangular view
