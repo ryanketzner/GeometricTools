@@ -173,4 +173,14 @@ namespace gte
     // Template alias for convenience.
     template <typename T>
     using Plane3 = Hyperplane<3, T>;
+
+    // Addon to GeometricTools
+    template <int32_t N, typename T>
+    bool SameSide(Hyperplane<N,T> const& plane, Vector<N,T> const& point1,
+        Vector<N,T> const& point2)
+    {
+        bool sign1 = Dot(plane.normal, point1) >= plane.constant;
+        bool sign2 = Dot(plane.normal, point2) >= plane.constant;
+        return sign1 == sign2;
+    }
 }

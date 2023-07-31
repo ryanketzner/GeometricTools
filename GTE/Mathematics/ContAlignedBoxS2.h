@@ -26,4 +26,16 @@ namespace gte
         return true;
     }
 
+    template <typename Real> 
+    bool GetContainer(std::vector<Vector3<Real>> const& points, AlignedBoxS2<Real>& box)
+    {
+        for (int i = 0; i < points.size(); i++)
+        {
+            PointS2<Real> point = CartToGeographic(points[i]);
+            box.Expand(point.Lat(),point.Lon());
+        }
+        
+        return true;
+    }
+
 }
