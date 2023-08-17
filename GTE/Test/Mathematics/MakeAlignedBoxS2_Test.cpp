@@ -292,3 +292,47 @@ TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_Sphere_7)
         }
     }
 }
+
+// Test making footprint box from a point at position x = 7000 over a sphere
+// centered at the origin with radius 6378. Create a random grid on the sphere
+// with 10 million points, and verify that each point contained by the box 
+// halfspace is contained by the footprint box
+TEST(TestMakeAlignedBoxS2, TestMakeFootPrintBoxS2_Sphere_8)
+{
+    int seed;
+
+    Vector3<double> pos({7000.0, 0.0, 0.0});
+    Vector3<double> u((int)2); // z
+    Vector3<double> r((int)1); // y
+    double rot_angle = -GTE_C_PI/8.0;
+    AxisAngle<3,double> rot_right(u, rot_angle);
+    r = Rotate(rot_right,r);
+
+    AxisAngle<3,double> rot_up(r,-rot_angle);
+    u = Rotate(rot_up, u);
+
+
+    double angle = GTE_C_PI/64.0;
+    RectView3<double> view(u, r, pos, angle, angle);
+
+    double radius = 6378;
+    Sphere3<double> sphere({Vector3<double>::Zero(), radius});
+
+    AlignedBoxS2<double> box = MakeFootprintBoxS2(view,sphere);
+
+    // Test that box contains every point that the halfspace contains
+    int num = 10000000;
+    std::vector<Vector3<double>> grid = RandomSurfaceGrid(num,sphere,seed);
+    Halfspace3<double> polar = MakePolarHalfspace3(pos,sphere);
+
+    std::cout << "Box lats: " << box.latMin << "," << box.latMax << std::endl;
+    std::cout << "Box lons: " << box.lonMin << "," << box.lonMax << std::endl;
+
+    for (const auto& point : grid)
+    {
+        if (InContainer(point,polar) && InContainer(point,view))
+        {
+            EXPECT_TRUE(InContainer(CartToGeographic(point),box));
+        }
+    }
+}

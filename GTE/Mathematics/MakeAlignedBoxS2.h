@@ -9,6 +9,8 @@
 #include <Mathematics/MakeHalfspace.h>
 #include <Mathematics/IntrRay3Sphere3.h>
 #include <Mathematics/IntrRay3Ellipsoid3.h>
+#include <Mathematics/IntrPlane3Sphere3.h>
+#include <Mathematics/IntrPlane3Plane3.h>
 #include <Mathematics/MakeHalfspace.h>
 #include <Mathematics/Cone.h>
 #include <Mathematics/ContRectView3Cone3.h>
@@ -90,68 +92,84 @@ namespace gte
                 points.emplace_back(result.point[0]);
             else
             {
-                // If any ray fails to intersect, return Full box
-                //return AlignedBoxS2<Real>::Full();
+                // If any ray fails to intersect, return horizon box
                 return MakeFootprintBoxS2(view.vertex, sphere);
             }
         }
 
-        // New Code
-        FIQuery<Real,Line3<Real>,Sphere3<Real>> line_query;
-        Vector3<Real> z((int)2);
+        const Vector3<Real> z((int)2);
         Vector3<Real> circ_center;
+        Plane3<Real> meridian_plane;
         for (int i = 0; i < 4; i++)
         {
-            PointS2<Real> p_geo = CartToGeographic(points[i]);
             int i1 = i-1;
             if (i1 == -1)
                 i1 = 3;
 
-            // Longitude
+            Real angle = acos(halfspaces[i].constant/sphere.radius);
+
+            bool convex = false;
             if (InContainer(sphere.center, halfspaces[i]))
                 circ_center = -halfspaces[i].normal*sphere.radius;
             else
-                circ_center = halfspaces[i].normal*sphere.radius;
-            
-            Plane3<Real> lat_plane(Vector3<Real>((int)2), circ_center[2]);
-            Vector3<Real> normal = Cross(z, circ_center);
-            Normalize(normal);
-            Plane3<Real> lon_plane(normal, (Real)0);
-
-            if (!SameSide(lat_plane, points[i1], points[i]))
             {
-                normal = Cross(lat_plane.normal,halfspaces[i].normal);
-                Normalize(normal);
-                Line3<Real> line({view.vertex, normal});
+                convex = true;
+                circ_center = halfspaces[i].normal*sphere.radius;
+            }
+            
+            if (convex)
+            {
+                PointS2<Real> circ_center_geo = CartToGeographic(circ_center);
+                Real z_lat = sphere.radius*sin(circ_center_geo.Lat())/cos(angle);
+                Plane3<Real> parallel_plane(Vector3<Real>((int)2), z_lat);
 
-                auto result = line_query(line,sphere);
-                if (result.intersect)
-                {
-                    if (std::abs(result.parameter[0]) < std::abs(result.parameter[1]))
-                        points.emplace_back(result.point[0]);
-                    else
-                        points.emplace_back(result.point[1]);
+                if (!SameSide(parallel_plane, points[i1], points[i]))
+                { 
+                    FIQuery<Real,Line3<Real>,Sphere3<Real>> line_query;
+                    FIQuery<Real,Plane3<Real>,Plane3<Real>> plane_query;
+                    Plane3<Real> h_plane(halfspaces[i].normal, halfspaces[i].constant);
+                    auto result = line_query(plane_query(parallel_plane, h_plane).line, sphere);
+
+                    // This doesn't work. I'm not quite sure why.
+                    // normal = UnitCross(parallel_plane.normal,halfspaces[i].normal);
+                    // Line3<Real> line({view.vertex, normal});
+                    // auto result = line_query(line,sphere);
+
+                    if (result.intersect)
+                    {
+                        if (Length(result.point[0] - view.vertex) < Length(result.point[1] - view.vertex))
+                            points.emplace_back(result.point[0]);
+                        else
+                            points.emplace_back(result.point[1]);
+                    }
+                    else 
+                        return MakeFootprintBoxS2(view.vertex, sphere);
                 }
-                //else 
-                    //std::cout << "Error." << std::endl;
             }
 
-            if (!SameSide(lon_plane, points[i1], points[i]))
-            {
-                Line3<Real> line({view.vertex,
-                    Cross(lon_plane.normal,halfspaces[i].normal)});
-
-                auto result = line_query(line,sphere);
+            meridian_plane = Plane3<Real>(UnitCross(z, circ_center), (Real)0);
+            if (!SameSide(meridian_plane, points[i1], points[i]))
+            {                
+                FIQuery<Real,Line3<Real>,Sphere3<Real>> line_query;
+                FIQuery<Real,Plane3<Real>,Plane3<Real>> plane_query;
+                Plane3<Real> edge_plane(halfspaces[i].normal, halfspaces[i].constant);
+                auto result = line_query(plane_query(meridian_plane, edge_plane).line, sphere);
+                
+                // This doesn't work. I'm not quite sure why.
+                // Vector3<Real> lon_normal = UnitCross(meridian_plane.normal, halfspaces[i].normal);
+                // Line3<Real> line(view.vertex, lon_normal);
+                // auto result = line_query(line,sphere);
                 if (result.intersect)
                 {
-                    if (std::abs(result.parameter[0]) < std::abs(result.parameter[1]))
+                    if (Length(result.point[0] - view.vertex) < Length(result.point[1] - view.vertex))
                         points.emplace_back(result.point[0]);
                     else
                         points.emplace_back(result.point[1]);
                 }
+                else
+                    return MakeFootprintBoxS2(view.vertex, sphere);
             }
         }
-    
 
         // Get the spherical box which bounds the projected points
         AlignedBoxS2<Real> box;
@@ -206,10 +224,10 @@ namespace gte
 
         // If north pole is visibile;
         Vector3<Real> north({(Real)0, (Real)0, sphere.radius});
-        if (InContainer(north, polar))
+        if (InContainer(north, polar) && InContainer(north, view))
             box.ToNorthPolarCap();
         // If south pole is visible
-        else if (InContainer(-north, polar))
+        else if (InContainer(-north, polar) && InContainer(north, view))
             box.ToSouthPolarCap();
 
         return box;
