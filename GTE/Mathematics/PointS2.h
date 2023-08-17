@@ -12,6 +12,12 @@ namespace gte
     {
     public:
 
+        PointS2() : 
+        lat((Real)0),
+        lon((Real)0)
+        {
+        }
+
         PointS2(Real latIn, Real lonIn)
         {
             LogAssert(latIn >= -GTE_C_HALF_PI && latIn <= GTE_C_HALF_PI, "Invalid lat.");

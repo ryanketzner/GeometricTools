@@ -80,7 +80,10 @@ namespace gte
             halfspaces[3].normal = Rotate(r4,uVector);
 
             for (auto& halfspace : halfspaces)
+            {
+                Normalize(halfspace.normal);
                 halfspace.constant = Dot(halfspace.normal,vertex);
+            }
         }
 
         Real GetAngleHeight() const
@@ -99,13 +102,13 @@ namespace gte
         void GetCorners(std::array<Ray3<Real>,4>& corners) const
         {
             corners[0] = Ray3<Real>(vertex,
-                Cross(halfspaces[1].normal, halfspaces[0].normal));
+                UnitCross(halfspaces[1].normal, halfspaces[0].normal));
             corners[1] = Ray3<Real>(vertex,
-                Cross(halfspaces[2].normal, halfspaces[1].normal));
+                UnitCross(halfspaces[2].normal, halfspaces[1].normal));
             corners[2] = Ray3<Real>(vertex,
-                Cross(halfspaces[3].normal, halfspaces[2].normal));
+                UnitCross(halfspaces[3].normal, halfspaces[2].normal));
             corners[3] = Ray3<Real>(vertex,
-                Cross(halfspaces[0].normal, halfspaces[3].normal));
+                UnitCross(halfspaces[0].normal, halfspaces[3].normal));
         }
 
         Vector3<Real> uVector, rVector, vertex;
