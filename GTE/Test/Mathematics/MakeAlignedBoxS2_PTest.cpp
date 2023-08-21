@@ -82,13 +82,13 @@ TEST_F(Fixture, TestHorizon)
 }
 
 // Rect view with FOV angles generated from uniform distribution spanning .001
-// to Pi/2. View is nadir-pointing. Presumably, the orthogonal complement 
+// to Pi - .001. View is nadir-pointing. Presumably, the orthogonal complement 
 // algorithm makes roll angle of the sensor random.
 TEST_F(Fixture, TestRectView3)
 {
     std::mt19937 gen(seed);
     double min_angle = .001;
-    double max_angle = GTE_C_HALF_PI;
+    double max_angle = GTE_C_PI - .001;
     std::uniform_real_distribution<double> angle_dist(min_angle, max_angle);
 
     std::array<Vector3<double>,2> u_r = ComputeOrthogonalComplement(dir);
@@ -129,7 +129,7 @@ TEST_F(Fixture, TestCone3)
 {
     std::mt19937 gen(seed);
     double min_angle = .002;
-    double max_angle = GTE_C_QUARTER_PI;
+    double max_angle = GTE_C_HALF_PI - .002;
     std::uniform_real_distribution<double> angle_dist(min_angle, max_angle);
 
     Ray3<double> ray(pos, dir);
@@ -161,23 +161,25 @@ TEST_F(Fixture, TestCone3)
 }
 
 // Rect view with FOV angles generated from uniform distribution spanning .001
-// to Pi/2. View is rotated in az/el by angle generated from uniform
-// distribution spanning -Pi/4 to Pi/4.
+// to Pi/2 - .001. View is rotated in az/el by angle generated from uniform
+// distribution spanning -Pi/2 to Pi/2.
 TEST_F(Fixture, TestRectView3_Oriented)
 {
     std::mt19937 gen(seed);
     double min_angle = .001;
-    double max_angle = GTE_C_HALF_PI;
+    double max_angle = GTE_C_PI - .001;
 
-    std::uniform_real_distribution<double> rot_dist(-GTE_C_PI/4.0, GTE_C_PI/4.0);
+    std::uniform_real_distribution<double> rot_dist(-GTE_C_PI/2.0, GTE_C_PI/2.0);
     std::uniform_real_distribution<double> angle_dist(min_angle, max_angle);
 
     std::array<Vector3<double>,2> u_r = ComputeOrthogonalComplement(dir);
 
-    AxisAngle<3,double> rot_right(u_r[0], rot_dist(gen));
+    double az = rot_dist(gen);
+    AxisAngle<3,double> rot_right(u_r[0], az);
     Vector3<double> r = Rotate(rot_right,u_r[1]);
 
-    AxisAngle<3,double> rot_up(r, rot_dist(gen));
+    double el = rot_dist(gen);
+    AxisAngle<3,double> rot_up(r, el);
     Vector3<double> u = Rotate(rot_up, u_r[0]);
 
     RectView3<double> view(u, r, pos, angle_dist(gen), angle_dist(gen));
@@ -202,6 +204,8 @@ TEST_F(Fixture, TestRectView3_Oriented)
                 std::cout << "Max: " << box.latMax << ", " << box.lonMax << std::endl;
                 std::cout << "HeightAngle: " << view.GetAngleHeight() << std::endl;
                 std::cout << "WidthAngle: " << view.GetAngleWidth() << std::endl;
+                std::cout << "Az: " << az << std::endl;
+                std::cout << "El: " << el << std::endl;
             }
             
             ASSERT_TRUE(test);
