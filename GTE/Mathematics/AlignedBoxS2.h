@@ -66,7 +66,7 @@ namespace gte
         // Returns the longitudinal length of the box in radians
         Real LonLength() const
         {
-            return ClockwiseDist(lonMin,lonMax);
+            return CounterclockwiseDist(lonMin,lonMax);
         }
 
         // Returns the latitudinal length of the box in radians
@@ -102,6 +102,12 @@ namespace gte
                 lonMax == (Real)-GTE_C_PI);
         }
 
+        // Returns true if the box spans a longitude greater than 180 degrees
+        bool IsWide() const
+        {
+            return LonLength() >= GTE_C_PI;
+        }
+
         // Expand the box so that it contains the specified point
         bool Expand(Real lat, Real lon)
         {
@@ -110,6 +116,17 @@ namespace gte
 
             bool expandedLat = ExpandLat(lat);
             bool expandedLon = ExpandLon(lon);
+            return  expandedLat || expandedLon;    
+        }
+
+        // Expand the box so that it contains the specified point
+        bool ExpandLong(Real lat, Real lon)
+        {
+            if (lon == -GTE_C_PI)
+                lon = GTE_C_PI;
+
+            bool expandedLat = ExpandLat(lat);
+            bool expandedLon = ExpandLonLong(lon);
             return  expandedLat || expandedLon;    
         }
 
@@ -129,6 +146,27 @@ namespace gte
                     lonMax = lon;
                 else  
                     lonMin = lon;
+
+                return true;
+            }
+        }
+
+        bool ExpandLonLong(Real lon)
+        {
+            if (ContainsLon(lon))
+                return false;
+            else
+            {
+                // Expand longitude interval in whichever direction requires
+                // the least increase in length
+
+                if (IsEmptyLon())
+                    lonMin = lonMax = lon;
+                else if (CounterclockwiseDist(lonMax,lon) <= 
+                    ClockwiseDist(lonMin,lon))
+                    lonMin = lon;
+                else  
+                    lonMax = lon;
 
                 return true;
             }
@@ -169,6 +207,12 @@ namespace gte
         bool IsInverted() const
         {
             return lonMin > lonMax;
+        }
+
+        void Join()
+        {
+            lonMin = -GTE_C_PI;
+            lonMax = GTE_C_PI;
         }
 
         void ToNorthPolarCap()

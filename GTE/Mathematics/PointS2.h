@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <cmath>
+
 #include <Mathematics/Math.h>
 #include <Mathematics/Logger.h>
 #include <Mathematics/Vector3.h>
@@ -18,12 +20,26 @@ namespace gte
         {
         }
 
-        PointS2(Real latIn, Real lonIn)
+        PointS2(Real latIn, Real lonIn, bool enforce_bounds = true)
         {
-            LogAssert(latIn >= -GTE_C_HALF_PI && latIn <= GTE_C_HALF_PI, "Invalid lat.");
-            lat = latIn;
-            LogAssert(lonIn >= -GTE_C_PI && lonIn <= GTE_C_PI, "Invalid lon.");
-            lon = lonIn;
+            if (enforce_bounds)
+            {
+                LogAssert(latIn >= -GTE_C_HALF_PI && latIn <= GTE_C_HALF_PI, "Invalid lat.");
+                lat = latIn;
+                LogAssert(lonIn >= -GTE_C_PI && lonIn <= GTE_C_PI, "Invalid lon.");
+                lon = lonIn;
+            }
+            else
+            {
+                lon = fmod(lonIn, GTE_C_TWO_PI);
+                if (lon > GTE_C_PI)
+                    lon -= GTE_C_TWO_PI;
+                else if (lon < -GTE_C_PI)
+                    lon += GTE_C_TWO_PI;
+
+                LogAssert(latIn >= -GTE_C_HALF_PI && latIn <= GTE_C_HALF_PI, "Invalid lat.");
+                lat = latIn;
+            }
         }
 
         Real Lat() const
@@ -54,4 +70,20 @@ namespace gte
 
         return PointS2<Real>(lat, lon);
     }
+
+    #include <cmath>
+
+    template <typename Real>
+    Vector3<Real> GeographicToCart(PointS2<Real> const& p)
+    {
+        Real lat = p.Lat();
+        Real lon = p.Lon();
+
+        Real x = std::cos(lat) * std::cos(lon);
+        Real y = std::cos(lat) * std::sin(lon);
+        Real z = std::sin(lat);
+
+        return Vector3<Real>({x, y, z});
+    }
+
 }
