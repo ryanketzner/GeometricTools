@@ -63,6 +63,19 @@ namespace gte
                 (Real)-GTE_C_PI, (Real)GTE_C_PI);
         }
 
+        Real Area() const
+        {
+            if (IsEmpty())
+                return (Real)0;
+            else
+                return LonLength()*(sin(latMax) - sin(latMin));
+        }
+
+        Real AreaRatio() const
+        {
+            return Area()/(4*GTE_C_PI);
+        }
+
         // Returns the longitudinal length of the box in radians
         Real LonLength() const
         {
