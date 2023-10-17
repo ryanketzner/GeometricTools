@@ -8,6 +8,7 @@
 #pragma once
 
 #include <Mathematics/Cone.h>
+#include <Mathematics/AlignedBox.h>
 
 namespace gte
 {
@@ -18,5 +19,24 @@ namespace gte
         Vector<N, Real> diff = point - cone.ray.origin;
         Real h = Dot(cone.ray.direction, diff);
         return cone.HeightInRange(h) && h * h >= cone.cosAngleSqr * Dot(diff, diff);
+    }
+
+    // Addon to GeometricTools
+    template <int32_t N, typename Real>
+    bool InContainer(AlignedBox<N, Real> const& box, Cone<N, Real> const& cone)
+    {
+        std::array<Vector<N,Real>, N> vertices;
+        box.GetVertices(vertices);
+
+        for (int i = 1; i < vertices.size() - 1; i++)
+        {
+            // If any vertex is not in the container,
+            // immediately terminate
+            if (InContainer(vertices[i], cone))
+                return false;
+        }
+
+        // All vertices are in container
+        return true;
     }
 }
