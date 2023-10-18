@@ -33,7 +33,7 @@ namespace gte
         {
             // If any vertex is not in the container,
             // immediately terminate
-            if (InContainer(vertices[i], cone))
+            if (!InContainer(vertices[i], cone))
                 return false;
         }
 

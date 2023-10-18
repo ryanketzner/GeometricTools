@@ -26,7 +26,7 @@ namespace gte
         {
             // If any vertex is not in the container,
             // immediately terminate
-            if (InContainer(vertices[i], halfspace))
+            if (!InContainer(vertices[i], halfspace))
                 return false;
         }
 
