@@ -19,7 +19,7 @@ namespace gte
     bool InContainer(AlignedBox<N, Real> const& box, Halfspace<N, Real> const& halfspace)
     {
         constexpr int32_t arraySize = std::pow(2, N);
-        std::array<Vector<N,Real>,N> vertices;
+        std::array<Vector<N,Real>, arraySize> vertices;
         box.GetVertices(vertices);
 
         for (int i = 1; i < vertices.size() - 1; i++)
