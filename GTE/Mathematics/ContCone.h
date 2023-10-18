@@ -25,6 +25,7 @@ namespace gte
     template <int32_t N, typename Real>
     bool InContainer(AlignedBox<N, Real> const& box, Cone<N, Real> const& cone)
     {
+        constexpr int32_t arraySize = std::pow(2, N);
         std::array<Vector<N,Real>, N> vertices;
         box.GetVertices(vertices);
 
