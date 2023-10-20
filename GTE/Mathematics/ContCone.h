@@ -29,7 +29,7 @@ namespace gte
         std::array<Vector<N,Real>, arraySize> vertices;
         box.GetVertices(vertices);
 
-        for (int i = 1; i < vertices.size() - 1; i++)
+        for (int i = 0; i < vertices.size(); i++)
         {
             // If any vertex is not in the container,
             // immediately terminate
