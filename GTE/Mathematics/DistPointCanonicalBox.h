@@ -8,6 +8,7 @@
 #pragma once
 
 #include <Mathematics/DCPQuery.h>
+#include <Mathematics/DFPQuery.h>
 #include <Mathematics/CanonicalBox.h>
 
 // Compute the distance from a point to a solid canonical box in nD.
@@ -77,4 +78,61 @@ namespace gte
 
     template <typename T>
     using DCPPoint3CanonicalBox3 = DCPPointCanonicalBox<3, T>;
+
+    // Addon to GeometricTools
+    template <int32_t N, typename T>
+    class DFPQuery<T, Vector<N, T>, CanonicalBox<N, T>>
+    {
+    public:
+        struct Result
+        {
+            Result()
+                :
+                distance(static_cast<T>(0)),
+                sqrDistance(static_cast<T>(0)),
+                furthest{ Vector<N, T>::Zero(), Vector<N, T>::Zero() }
+            {
+            }
+
+            T distance, sqrDistance;
+            std::array<Vector<N, T>, 2> furthest;
+        };
+
+        Result operator()(Vector<N, T> const& point, CanonicalBox<N, T> const& box)
+        {
+            Result result{};
+
+            result.furthest[0] = point;
+            result.sqrDistance = static_cast<T>(0);
+            for (int32_t i = 0; i < N; ++i)
+            {
+                if (point[i] < static_cast<T>(0))
+                {
+                    T delta = point[i] - box.extent[i];
+                    result.sqrDistance += delta * delta;
+                    result.furthest[1][i] = box.extent[i];
+                }
+                else
+                {
+                    T delta = point[i] + box.extent[i];
+                    result.sqrDistance += delta * delta;
+                    result.furthest[1][i] = -box.extent[i];
+                }
+            }
+            result.distance = std::sqrt(result.sqrDistance);
+
+            return result;
+        }
+    };
+
+    // Template aliases for convenience.
+    template <int32_t N, typename T>
+    using DFPPointCanonicalBox = DFPQuery<T, Vector<N, T>, CanonicalBox<N, T>>;
+
+    template <typename T>
+    using DFPPoint2CanonicalBox2 = DFPPointCanonicalBox<2, T>;
+
+    template <typename T>
+    using DFPPoint3CanonicalBox3 = DFPPointCanonicalBox<3, T>;
+
 }

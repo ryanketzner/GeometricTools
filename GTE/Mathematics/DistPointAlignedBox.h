@@ -63,4 +63,48 @@ namespace gte
 
     template <typename T>
     using DCPPoint3AlignedBox3 = DCPPointAlignedBox<3, T>;
+
+    // Addon to GeometricTools
+    template <int32_t N, typename T>
+    class DFPQuery<T, Vector<N, T>, AlignedBox<N, T>>
+    {
+    public:
+        using PFQuery = DFPQuery<T, Vector<N, T>, CanonicalBox<N, T>>;
+        using Result = typename PFQuery::Result;
+
+        Result operator()(Vector<N, T> const& point, AlignedBox<N, T> const& box)
+        {
+            Result result{};
+
+            // Translate the point and box so that the box has center at the
+            // origin.
+            Vector<N, T> boxCenter{};
+            CanonicalBox<N, T> cbox{};
+            box.GetCenteredForm(boxCenter, cbox.extent);
+            Vector<N, T> xfrmPoint = point - boxCenter;
+
+            // The query computes 'output' relative to the box with center
+            // at the origin.
+            PFQuery pfQuery{};
+            result = pfQuery(xfrmPoint, cbox);
+
+            // Store the input point.
+            result.furthest[0] = point;
+
+            // Translate the closest box point to the original coordinates.
+            result.furthest[1] += boxCenter;
+
+            return result;
+        }
+    };
+
+    // Template aliases for convenience.
+    template <int32_t N, typename T>
+    using DFPPointAlignedBox = DFPQuery<T, Vector<N, T>, AlignedBox<N, T>>;
+
+    template <typename T>
+    using DFPPoint2AlignedBox2 = DFPPointAlignedBox<2, T>;
+
+    template <typename T>
+    using DFPPoint3AlignedBox3 = DFPPointAlignedBox<3, T>;
 }
