@@ -27,7 +27,7 @@ namespace gte
             bool intersect;
         };
 
-        Result operator()(AlignedBox<N,T> const& box, Hyperphere<N,T> const& sphere)
+        Result operator()(AlignedBox<N,T> const& box, Hypersphere<N,T> const& sphere)
         {
             DCPQuery<T, Vector<N,T>, AlignedBox<N,T>> pbQuery;
             auto pbResult = pbQuery(sphere.center, box);
