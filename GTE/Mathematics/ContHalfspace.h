@@ -18,19 +18,16 @@ namespace gte
     template <int32_t N, typename Real>
     bool InContainer(AlignedBox<N, Real> const& box, Halfspace<N, Real> const& halfspace)
     {
-        constexpr int32_t arraySize = std::pow(2, N);
-        std::array<Vector<N,Real>, arraySize> vertices;
-        box.GetVertices(vertices);
+        Real dot = 0;
+        for (int i = 0; i < N; i++)
+            if (halfspace.normal[i] >= 0)
+                dot += halfspace.normal[i] * box.max[i];
+            else
+                dot += halfspace.normal[i] * box.min[i];
 
-        for (int i = 1; i < vertices.size() - 1; i++)
-        {
-            // If any vertex is not in the container,
-            // immediately terminate
-            if (!InContainer(vertices[i], halfspace))
-                return false;
-        }
-
-        // All vertices are in container
-        return true;
+        if (dot <= halfspace.constant)
+            return true;
+        else
+            return false;
     }
 }
