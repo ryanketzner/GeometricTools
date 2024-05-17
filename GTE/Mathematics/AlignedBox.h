@@ -77,6 +77,17 @@ namespace gte
                 }
             }
         }
+        
+        // Addon to GeometricTools
+        T Volume()
+        {
+        	Vector<N,T> diff = max - min;
+        	T volume = 1.0;
+        	for (int i = 0; i < N; i++)
+        		volume *= diff[i];
+        		
+        	return volume;
+        }
 
         // Public member access.  It is required that min[i] <= max[i].
         Vector<N, T> min, max;

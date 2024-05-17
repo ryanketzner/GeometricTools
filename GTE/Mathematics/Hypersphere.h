@@ -34,6 +34,12 @@ namespace gte
             radius(inRadius)
         {
         }
+        
+        Real Volume()
+        {
+   			Real gamma_input = static_cast<Real>(N) / 2 + 1;
+    		return pow(M_PI, N / 2.0) / std::tgamma(gamma_input) * pow(radius, N);
+        }
 
         // Public member access.
         Vector<N, Real> center;
