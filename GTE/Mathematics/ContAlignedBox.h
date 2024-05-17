@@ -33,6 +33,21 @@ namespace gte
         }
         return true;
     }
+    
+    // Addon to GeometricTools
+    // Test that box2 contains box1
+    // Need to double-check convention
+    // on leq and geq
+    template <int32_t N, typename Real>
+    bool InContainer(AlignedBox<N,Real> const& box1, AlignedBox<N,Real> const& box2)
+    {
+    	for (int32_t i = 0; i < N; ++i)
+    	{
+    		if (box2.min[i] >= box1.min[i] || box2.max[i] <= box1.max[i])
+    			return false;
+    	}
+    	return true;
+    }
 
     // Construct an aligned box that contains two other aligned boxes.  The
     // result is the minimum size box containing the input boxes.
