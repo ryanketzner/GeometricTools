@@ -230,6 +230,16 @@ namespace gte
         return v0;
     }
 
+    template <int32_t N, typename Real, typename Other>
+    Vector<N, Real>& operator+=(Vector<N, Real>& v0, Vector<N, Other> const& v1)
+    {
+        for (int32_t i = 0; i < N; ++i)
+        {
+            v0[i] += v1[i];
+        }
+        return v0;
+    }
+
     template <int32_t N, typename Real>
     Vector<N, Real>& operator-=(Vector<N, Real>& v0, Vector<N, Real> const& v1)
     {
@@ -279,6 +289,14 @@ namespace gte
         return result *= v1;
     }
 
+    // Componentwise algebraic operations.
+    template <int32_t N, typename Real, typename Other>
+    Vector<N, Real> operator*(Vector<N, Real> const& v0, Vector<N, Other> const& v1)
+    {
+        Vector<N, Real> result = v0;
+        return result *= v1;
+    }
+
     template <int32_t N, typename Real>
     Vector<N, Real> operator/(Vector<N, Real> const& v0, Vector<N, Real> const& v1)
     {
@@ -288,6 +306,16 @@ namespace gte
 
     template <int32_t N, typename Real>
     Vector<N, Real>& operator*=(Vector<N, Real>& v0, Vector<N, Real> const& v1)
+    {
+        for (int32_t i = 0; i < N; ++i)
+        {
+            v0[i] *= v1[i];
+        }
+        return v0;
+    }
+
+    template <int32_t N, typename Real, typename Other>
+    Vector<N, Real>& operator*=(Vector<N, Real>& v0, Vector<N, Other> const& v1)
     {
         for (int32_t i = 0; i < N; ++i)
         {
