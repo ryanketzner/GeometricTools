@@ -16,8 +16,12 @@ add_subdirectory(Graphics)
 add_subdirectory(Mathematics)
 add_subdirectory(MathematicsGPU)
 add_subdirectory(Test)
+add_subdirectory(python/src)
+
 
 option(BUILD_SAMPLES "Build Samples" OFF)
 if(BUILD_SAMPLES)
   add_subdirectory(Samples)
 endif()
+
+
