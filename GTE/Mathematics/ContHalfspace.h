@@ -13,8 +13,8 @@ namespace gte
     bool InContainer(Vector<N, Real> const& point, Halfspace<N, Real> const& halfspace)
     {
         // Old Version
-        //return Dot(halfspace.normal,point) >= halfspace.constant;
-        return Dot(halfspace.normal,point) <= halfspace.constant;
+        return Dot(halfspace.normal,point) >= halfspace.constant;
+        //return Dot(halfspace.normal,point) <= halfspace.constant;
     }
 
     template <int32_t N, typename Real>
