@@ -9,6 +9,8 @@ include_directories(${GTE_INCLUDE_DIR})
 find_package(GTest REQUIRED)
 set(LIBS GTest::GTest GTest::Main)
 
+enable_testing()
+
 # Iterate through the .cpp files, creating executables and linking libraries
 foreach(file ${CPP_FILES})
     get_filename_component(target_name ${file} NAME_WE)
