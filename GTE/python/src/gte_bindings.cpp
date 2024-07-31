@@ -1,5 +1,6 @@
 #include <pybind11/pybind11.h>
 #include "vector_bindings.hpp"
+#include "randomsurfacegrid_bindings.hpp"
 
 namespace py = pybind11;
 
@@ -31,5 +32,7 @@ PYBIND11_MODULE(GeometricTools, m)
     bind_matrix3x3d(m);
     bind_euleranglesd(m);
     bind_rotationd(m);
+
+    bind_random_surface_grid<3,double>(m,"RandomSurfaceGrid3d");
 }
 
