@@ -1,8 +1,9 @@
 #include <pybind11/pybind11.h>
+#include "vector_bindings.hpp"
 
 namespace py = pybind11;
 
-void bind_vector3d(py::module& m);
+//void bind_vector3d(py::module& m);
 void bind_halfspace3d(py::module& m);
 void bind_sphere3d(py::module& m);
 void bind_rectview3d(py::module& m);
@@ -13,7 +14,16 @@ void bind_rotationd(py::module& m);
 
 PYBIND11_MODULE(GeometricTools, m)
 {
-    bind_vector3d(m);
+    //bind_vectorNd<1>(m,"Vector1d");
+    bind_vectorNd<2>(m,"Vector2d");
+    bind_vectorNd<3>(m,"Vector3d");
+    bind_vectorNd<4>(m,"Vector4d");
+    bind_vectorNd<5>(m,"Vector5d");
+    bind_vectorNd<6>(m,"Vector6d");
+    bind_vectorNd<7>(m,"Vector7d");
+    bind_vectorNd<8>(m,"Vector8d");
+    bind_vectorNd<9>(m,"Vector9d");
+
     bind_halfspace3d(m);
     bind_sphere3d(m);
     bind_rectview3d(m);

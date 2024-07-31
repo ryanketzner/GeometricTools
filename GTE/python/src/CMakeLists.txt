@@ -4,7 +4,7 @@ find_package(pybind11 REQUIRED)
 # Specify the output directory for shared libraries
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/python/lib)
 
-add_library(GeometricTools SHARED gte_bindings.cpp vector_bindings.cpp halfspace_bindings.cpp sphere_bindings.cpp rectview_bindings.cpp cone_bindings.cpp matrix_bindings.cpp eulerangles_bindings.cpp rotation_bindings.cpp)
+add_library(GeometricTools SHARED gte_bindings.cpp halfspace_bindings.cpp sphere_bindings.cpp rectview_bindings.cpp cone_bindings.cpp matrix_bindings.cpp eulerangles_bindings.cpp rotation_bindings.cpp)
 
 # Ensure the shared library has the correct name and extension
 set_target_properties(GeometricTools PROPERTIES

@@ -4,7 +4,7 @@
 
 namespace py = pybind11;
 
-template <typename N>
+template <size_t N>
 void bind_vectorNd(py::module& m, const std::string& name)
 {
     py::class_<gte::Vector<N, double>>(m, name.c_str())
