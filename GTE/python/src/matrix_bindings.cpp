@@ -38,6 +38,7 @@ void bind_matrix3x3d(py::module& m) {
         .def("__sub__", [](const gte::Matrix<3, 3, double>& a, const gte::Matrix<3, 3, double>& b) { return a - b; })  // Subtraction operator
         .def("__neg__", [](const gte::Matrix<3, 3, double>& a) { return -a; })  // Unary negation operator
         .def("__mul__", [](const gte::Matrix<3, 3, double>& a, double scalar) { return a * scalar; })  // Scalar multiplication operator
+        .def("__mul__", [](const gte::Matrix<3, 3, double>& a, const gte::Matrix<3, 3, double>& b) { return a * b; })  // Matrix multiplication operator
         .def("__rmul__", [](double scalar, const gte::Matrix<3, 3, double>& a) { return scalar * a; })  // Right scalar multiplication operator
         .def("__truediv__", [](const gte::Matrix<3, 3, double>& a, double scalar) { return a / scalar; })  // Scalar division operator
         .def("__repr__", [](const gte::Matrix<3, 3, double>& mat) {
