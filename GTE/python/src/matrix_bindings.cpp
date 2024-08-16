@@ -56,5 +56,7 @@ void bind_matrix3x3d(py::module& m) {
             oss << "])";
             return oss.str();
         });  // Representation method
+        
+        m.def("Transpose", &gte::Transpose<3,3,double>, py::arg("Matrix"), "Return transposed matrix");
 }
 
