@@ -20,8 +20,14 @@ namespace gte
         {
         }
 
-        PointS2(Real latIn, Real lonIn, bool enforce_bounds = true)
+        PointS2(Real latIn, Real lonIn, bool enforce_bounds = true, bool degrees = false)
         {
+            if (degrees)
+            {
+                latIn = latIn*GTE_C_PI/180.0;
+                lonIn = lonIn*GTE_C_PI/180.0;
+            }
+
             if (enforce_bounds)
             {
                 LogAssert(latIn >= -GTE_C_HALF_PI && latIn <= GTE_C_HALF_PI, "Invalid lat.");
@@ -74,7 +80,7 @@ namespace gte
     #include <cmath>
 
     template <typename Real>
-    Vector3<Real> GeographicToCart(PointS2<Real> const& p)
+    Vector3<Real> GeographicToCart(PointS2<Real> const& p, Real radius = 1.0)
     {
         Real lat = p.Lat();
         Real lon = p.Lon();
@@ -83,7 +89,7 @@ namespace gte
         Real y = std::cos(lat) * std::sin(lon);
         Real z = std::sin(lat);
 
-        return Vector3<Real>({x, y, z});
+        return Vector3<Real>({radius*x, radius*y, radius*z});
     }
 
 }
