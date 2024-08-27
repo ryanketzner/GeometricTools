@@ -12,6 +12,7 @@ void bind_cone3d(py::module& m);
 void bind_matrix3x3d(py::module& m);
 void bind_euleranglesd(py::module& m);
 void bind_rotationd(py::module& m);
+void bind_points2(py::module& m);
 
 PYBIND11_MODULE(GeometricTools, m)
 {
@@ -32,7 +33,9 @@ PYBIND11_MODULE(GeometricTools, m)
     bind_matrix3x3d(m);
     bind_euleranglesd(m);
     bind_rotationd(m);
+    bind_points2(m);
 
     bind_random_surface_grid<3,double>(m,"RandomSurfaceGrid3d");
+    
 }
 
