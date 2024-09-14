@@ -110,6 +110,15 @@ namespace gte
             corners[3] = Ray3<Real>(vertex,
                 UnitCross(halfspaces[0].normal, halfspaces[3].normal));
         }
+        
+        std::array<Vector3<Real>,4> GetVertices() const
+        {
+			std::array<Vector3<Real>,4> vertices;
+			vertices[0] = UnitCross(halfspaces[1].normal, halfspaces[0].normal);
+			vertices[1] = UnitCross(halfspaces[2].normal, halfspaces[1].normal);
+			vertices[2] = UnitCross(halfspaces[3].normal, halfspaces[2].normal);
+			vertices[3] = UnitCross(halfspaces[0].normal, halfspaces[3].normal);
+        }
 
         Vector3<Real> uVector, rVector, vertex;
         std::array<Halfspace3<Real>,4> halfspaces;

@@ -67,6 +67,17 @@ namespace gte
             extent(inExtent)
         {
         }
+        
+        // Addon to GeometricTools
+        // Constructor which defaults to axis-alligned
+        Hyperellipsoid(Vector<N, Real> const& inCenter,
+            Vector<N, Real> const& inExtent)
+            :
+            center(inCenter),
+            axis(Vector<N,Real>::GetBasis()),
+            extent(inExtent)
+        {
+        }
 
         // Compute M = sum_{d=0}^{N-1} U[d]*U[d]^T/e[d]^2.
         void GetM(Matrix<N, N, Real>& M) const
