@@ -77,8 +77,6 @@ namespace gte
         return PointS2<Real>(lat, lon);
     }
 
-    #include <cmath>
-
     template <typename Real>
     Vector3<Real> GeographicToCart(PointS2<Real> const& p, Real radius = 1.0)
     {
@@ -91,5 +89,54 @@ namespace gte
 
         return Vector3<Real>({radius*x, radius*y, radius*z});
     }
+
+    // Converts Cartesian coordinates to geodetic coordinates (latitude and longitude)
+    // Default values assume the WGS84 ellipsoid.
+    template <typename Real>
+    PointS2<Real> CartToGeodetic(Vector3<Real> const& v, Real tolerance = 1e-12, Real a = 6378137.0, Real f = 1.0/298.257223563)
+    {
+        // WGS84 ellipsoid constants
+        const Real e2 = f * (2.0 - f); // First eccentricity squared
+
+        // Cartesian coordinates
+        Real x = v[0];
+        Real y = v[1];
+        Real z = v[2];
+
+        // Compute longitude (λ)
+        Real lon = std::atan2(y, x);
+
+        // Compute hypotenuse (p)
+        Real p = std::sqrt(x * x + y * y);
+
+        // Handle special case when p is near zero (point at the pole)
+        if (p <= std::numeric_limits<Real>::epsilon())
+        {
+            Real lat = (z >= (Real)0) ? GTE_C_HALF_PI : -GTE_C_HALF_PI;
+            return PointS2<Real>(lat, lon);
+        }
+
+        // Initial approximation of latitude (φ)
+        Real lat = std::atan2(z, p * (1 - e2));
+
+        // Iteratively improve the latitude value
+        const int maxIterations = 10;
+        int iteration = 0;
+        Real sinLat;
+        Real N;
+        Real latPrev;
+
+        do
+        {
+            latPrev = lat;
+            sinLat = std::sin(lat);
+            N = a / std::sqrt(1 - e2 * sinLat * sinLat);
+            lat = std::atan2(z + e2 * N * sinLat, p);
+            iteration++;
+        } while (std::abs(lat - latPrev) > tolerance && iteration < maxIterations);
+
+        return PointS2<Real>(lat, lon);
+    }
+
 
 }
