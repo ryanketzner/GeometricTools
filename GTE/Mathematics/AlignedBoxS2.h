@@ -4,6 +4,7 @@
 
 #include <array>
 #include "Mathematics/Math.h"
+#include "Mathematics/PointS2.h"
 
 namespace gte
 {
@@ -47,6 +48,14 @@ namespace gte
             latMax = inLatMax;
             lonMin = inLonMin;
             lonMax = inLonMax;
+        }
+
+        AlignedBoxS2(PointS2<Real> min, PointS2<Real> max)
+        {
+            latMin = min.Lat();
+            latMax = max.Lat();
+            lonMin = min.Lon();
+            lonMax = max.Lon();
         }
 
         // Empty lon interval goes from Pi to -Pi (180 deg to -180 deg)
