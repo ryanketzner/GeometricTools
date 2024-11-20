@@ -8,6 +8,7 @@
 #include <Mathematics/Logger.h>
 #include <Mathematics/AlignedBoxS2.h>
 #include <Mathematics/Math.h>
+#include <Mathematics/PointS2.h>
 
 // This class is used for creating cell grids on the spherical surface.
 // The cell grid is defined on an AlignedBoxS2.
@@ -36,22 +37,26 @@ namespace gte
              * @param box Aligned box on the sphere where grid is defined.
              * @param data Data to be stored in the cell grid. Number of elements in each vector must equal corresponding element in num_lon.
              */
-            CellGridS2(std::vector<Real> const& lat_bounds, std::vector<int> const& num_lon, 
-            AlignedBoxS2<Real> const& box, std::vector<std::vector<T>> const& data) :
-            lat_bounds(lat_bounds),
-            num_lon(num_lon),
-            box(box),
-            data(data)
+            CellGridS2(std::vector<Real> lat_bounds_in, std::vector<int> num_lon_in, 
+            AlignedBoxS2<Real> box_in, std::vector<T> data_in) :
+            lat_bounds(std::move(lat_bounds_in)),
+            num_lon(std::move(num_lon_in)),
+            box(box_in),
+            data(std::move(data_in))
             {
                 LogAssert(lat_bounds.front() == box.latMin && lat_bounds.back() == box.latMax, "First and last lat boundaries must match box boundaries.");
                 LogAssert(std::is_sorted(lat_bounds.begin(),lat_bounds.end()), "Lat bounds must be sorted in ascending order.");
                 
+                // Number of latitude bands
                 int num_lat = lat_bounds.size() - 1;
                 LogAssert(num_lat == num_lon.size(), "One value for number of longitude elements must be specified for each latitude element.");
 
-                LogAssert(data.size() == num_lat, "One data vector must be provided per lat band.")
-                for (int i = 0; i < num_lat; i++)
-                    LogAssert(num_lon[i] == data[i].size(), "Size of data vector at each lat band must equal number of lon cells.");
+                // Store cumulative offsets for efficient indexing
+                offsets.resize(num_lat, 0);
+                for (int i = 1; i <= num_lat; ++i)
+                {
+                    offsets[i] = offsets[i - 1] + num_lon[i - 1];
+                }
             }
 
             // Get the value in the cell touched by point lat,lon
@@ -84,7 +89,12 @@ namespace gte
                     idx_lon = static_cast<int>((lon + GTE_C_PI)/delta_lon);
                 }
 
-                return data.at(idx_lat).at(idx_lon);
+                return data.at(offsets.at(idx_lat) + idx_lon);
+            }
+
+            T& at(PointS2<Real> latlon)
+            {
+                return at(latlon.Lat(), latlon.Lon());
             }
 
             // Grid is contained within this spherical aligned box
@@ -97,6 +107,8 @@ namespace gte
             // Number of longitude cells in each latitude band
             std::vector<int> num_lon;
             // Data stored in cells
-            std::vector<std::vector<T>> data;
+            std::vector<T> data;
+            // Cumulative offsets for indexing into flattened data
+            std::vector<int> offsets;
     };
 }
