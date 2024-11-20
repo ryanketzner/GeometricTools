@@ -108,3 +108,35 @@ TEST(TestAlignedBoxS2, TestLonLength)
     double expected_length = GTE_C_PI;
     EXPECT_EQ(expected_length,box.LonLength());
 }
+
+// Construct a box with lat from 0 to pi/4 and lon from 0 to pi/4
+// and a second box with lat from pi/4 to pi/2 and lon from pi/4 to pi/2
+// Confirm that the first box is contiguous on the right lon with the second box,
+// and not contiguous on the left lon. Also confirm it is contiguous on the lat top.
+TEST(TestAlignedBoxS2, IsContiguous)
+{
+    // Lat 0 to pi/4, lon 0 to pi/4
+    AlignedBoxS2<double> box1(0.0,GTE_C_QUARTER_PI,0.0,GTE_C_QUARTER_PI);
+    // lat pi/4 to pi/2, lon pi/4 to pi/2
+    AlignedBoxS2<double> box2(GTE_C_QUARTER_PI,GTE_C_HALF_PI,GTE_C_QUARTER_PI,GTE_C_HALF_PI);
+
+    EXPECT_TRUE(box1.IsContiguousLonRight(box2));
+    EXPECT_FALSE(box1.IsContiguousLonLeft(box2));
+
+    EXPECT_TRUE(box1.IsContiguousLatTop(box2));
+}
+
+// Construct a box with lat from (-pi/2 to 0) and lon from (-pi to  0)
+// and a second box with lat from (0 to pi/2) and lon from (0 to Pi)
+// Confirm that the first box is contiguous in longitude on the right and left with 
+// the second box, and contiguous on the top in latitude.
+TEST(TestAlignedBoxS2, IsContiguous_Special)
+{
+    AlignedBoxS2<double> box1(-GTE_C_HALF_PI,0.0, -GTE_C_PI, 0.0);
+    AlignedBoxS2<double> box2(0.0,GTE_C_HALF_PI, 0.0, GTE_C_PI);
+
+    EXPECT_TRUE(box1.IsContiguousLonRight(box2));
+    EXPECT_TRUE(box1.IsContiguousLonLeft(box2));
+
+    EXPECT_TRUE(box1.IsContiguousLatTop(box2));
+}

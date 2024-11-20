@@ -231,6 +231,48 @@ namespace gte
             return lonMin > lonMax;
         }
 
+        // Checks wheter the boxes are contiguous in longitude on
+        // the right side of this box
+        // TODO: Figure out an appropriate tolerance
+        bool IsContiguousLonRight(AlignedBoxS2<Real> const& other, Real tol = 1e-10) const
+        {
+            // Check whether the right boundary of this box touches the left boundary of the other
+            Real cw_dist = ClockwiseDist(lonMax, other.lonMin);
+            Real ccw_dist = CounterclockwiseDist(lonMax, other.lonMin);
+            Real dist = std::min(cw_dist, ccw_dist);
+
+            if (dist <= tol)
+                return true;
+            else
+                return false;
+        }
+
+        // Checks whether the boxes are contiguous in longitude on
+        // the left side of this box
+        // TODO: Figure out an appropriate tolerance
+        bool IsContiguousLonLeft(AlignedBoxS2<Real> const& other, Real tol = 1e-10) const
+        {
+            // Check whether the left boundary of this box touches the right boundary of the other
+            return other.IsContiguousLonRight(*this, tol);
+        }
+
+        // Check whether the boxes are contiguous in latitude on the top side of this box
+        bool IsContiguousLatTop(AlignedBoxS2<Real> const& other, Real tol = 1e-10) const
+        {
+            Real dist = std::abs(latMax - other.latMin);
+            return (dist <= tol);
+        }
+
+        bool LatEqual(AlignedBoxS2<Real> const& other) const
+        {
+            return (other.latMin == latMin) && (other.latMax == latMax);
+        }
+
+        bool LonEqual(AlignedBoxS2<Real> const& other) const
+        {
+            return (other.lonMin == lonMin) && (other.lonMax == lonMax);
+        }
+
         void Join()
         {
             lonMin = -GTE_C_PI;
@@ -267,6 +309,18 @@ namespace gte
         {
             return latMin == box.latMin && latMax == box.latMax && lonMin ==
                 box.lonMin && lonMax == box.lonMax;
+        }
+
+        // Order by latMin, then lonMin
+        bool operator<(AlignedBoxS2 const& box) const
+        {
+            if (latMin != box.latMin)
+                return latMin < box.latMin;
+            if (latMax != box.latMax)
+                return latMax < box.latMax;
+            if (lonMin != box.lonMin)
+                return lonMin < box.lonMin;
+            return lonMax < box.lonMax;
         }
     };
 }
