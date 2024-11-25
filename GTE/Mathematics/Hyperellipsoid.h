@@ -223,6 +223,23 @@ namespace gte
             return true;
         }
 
+        // Addon to GeometricTools
+        // Scale the ellipsoid by some factor along each axis
+        // so that point touches the boundary.
+        void ScaleToPoint(Vector<N,Real> const& point)
+        {
+            Vector<N,Real> diff = point - center;
+            Matrix<N,N,Real> M;
+            GetM(M);
+
+            // f equals to one if the point is on the ellipsoid boundary
+            Real f = Dot(diff, M*diff);
+            Real scale = std::sqrt(f);
+
+            for (int i = 0; i < N; i++)
+                extent[i] = extent[i]*scale;
+        }
+
         // Public member access.
         Vector<N, Real> center;
         std::array<Vector<N, Real>, N> axis;
