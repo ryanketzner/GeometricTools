@@ -93,7 +93,7 @@ namespace gte
     // Converts Cartesian coordinates to geodetic coordinates (latitude and longitude)
     // Default values assume the WGS84 ellipsoid.
     template <typename Real>
-    PointS2<Real> CartToGeodetic(Vector3<Real> const& v, Real tolerance = 1e-12, Real a = 6378137.0, Real f = 1.0/298.257223563)
+    PointS2<Real> CartToGeodetic(Vector3<Real> const& v, Real a = 6378137.0, Real f = 1.0/298.257223563, Real tolerance = 1e-12)
     {
         // WGS84 ellipsoid constants
         const Real e2 = f * (2.0 - f); // First eccentricity squared
@@ -135,8 +135,35 @@ namespace gte
             iteration++;
         } while (std::abs(lat - latPrev) > tolerance && iteration < maxIterations);
 
+        if (iteration == maxIterations)
+            throw std::runtime_error("Routine to compute geodetic latitude failed to converge");
+
         return PointS2<Real>(lat, lon);
     }
 
+    // Converts Geodetic coordinates to Cartesian. h is the elevation.
+    // Default values assume the WGS84 ellipsoid.
+    template <typename Real>
+    Vector3<Real> GeodeticToCart(PointS2<Real> const& p, Real h = 0.0, Real a = 6378137.0, Real f = 1.0/298.257223563)
+    {
+        // WGS84 ellipsoid constants
+        Real e2 = f * (2.0 - f); // First eccentricity squared
 
+        Real lat = p.Lat();
+        Real lon = p.Lon();
+
+        Real sinLat = std::sin(lat);
+        Real cosLat = std::cos(lat);
+        Real sinLon = std::sin(lon);
+        Real cosLon = std::cos(lon);
+
+        // Radius of curvature in the prime vertical
+        Real N = a / std::sqrt(1 - e2 * sinLat * sinLat);
+
+        Real x = (N + h) * cosLat * cosLon;
+        Real y = (N + h) * cosLat * sinLon;
+        Real z = (N * (1 - e2) + h) * sinLat;
+
+        return Vector3<Real>({x, y, z});
+    }
 }
