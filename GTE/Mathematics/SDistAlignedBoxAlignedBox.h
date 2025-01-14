@@ -21,7 +21,6 @@ namespace gte
             T sDistance;
         };
 
-		// Assume Each box has a Vector<N,T> min, max;
         Result operator()(AlignedBox<N,T> const& box1, AlignedBox<N,T> const& box2, bool robust = false)
         {
             Result result{};
@@ -40,19 +39,27 @@ namespace gte
             for (int32_t i = 0; i < N; ++i)
             {
                 // Overlap along axis i
-                T overlap = std::min(box1.max[i], box2.max[i]) 
-                          - std::max(box1.min[i], box2.min[i]);
+                T minmax = std::min(box1.max[i], box2.max[i]);
+                T maxmin = std::max(box1.min[i], box2.min[i]);
+                T overlap = minmax - maxmin;
 
-                if (overlap < static_cast<T>(0))
+                if (overlap <= static_cast<T>(0))
                 {
                     // Negative overlap => gap along this dimension
                     haveGap = true;
                     distSquared += overlap * overlap;  // accumulate square of the gap
                 }
                 else
+                {
+                	T minmin = std::min(box1.min[i], box2.min[i]);
+                	T maxmax = std::max(box1.max[i], box2.max[i]);
+                	
+                	T min_penetration = std::min(maxmin - minmin, maxmax - minmax);
+                	overlap = min_penetration + overlap;
                     // Non-negative overlap => they touch or intersect in this dimension
                     if (overlap < minOverlap)
                         minOverlap = overlap;
+                }
             }
 
             if (haveGap)
