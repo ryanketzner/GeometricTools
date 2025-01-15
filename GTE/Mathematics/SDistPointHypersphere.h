@@ -1,4 +1,5 @@
 // Addon to GeometricTools
+#pragma once
 
 #include <Mathematics/SDQuery.h>
 #include <Mathematics/Hypersphere.h>

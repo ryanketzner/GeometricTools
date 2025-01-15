@@ -1,4 +1,5 @@
 // Addon to GeometricTools
+#pragma once
 
 #include <Mathematics/CDQuery.h>
 #include <Mathematics/SDistAlignedBoxAlignedBox.h>
