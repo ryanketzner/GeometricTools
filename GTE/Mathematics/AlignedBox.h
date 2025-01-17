@@ -8,6 +8,7 @@
 #pragma once
 
 #include <Mathematics/Vector.h>
+#include <Mathematics/AlignedHalfspace.h>
 
 // The box is aligned with the standard coordinate axes, which allows us to
 // represent it using minimum and maximum values along each axis.  Some
@@ -76,6 +77,21 @@ namespace gte
                     }
                 }
             }
+        }
+        
+        // Addon to GeometricTools
+        std::array<AlignedHalfspace<N, T>, 2*N> GetAlignedHalfspaces() const
+        {
+        	std::array<AlignedHalfspace<N, T>, 2*N> halfspaces;
+        	for (int i = 0; i < N; i++)
+        	{
+        		// Negative axis directions
+        		halfspaces[i] = AlignedHalfspace<N, T>{i, false, max[i]};
+        		// Positive axis directions
+        		halfspaces[i+N] = AlignedHalfspace<N, T>{i, true, min[i]};
+        	}
+        	
+        	return halfspaces;
         }
         
         // Addon to GeometricTools
