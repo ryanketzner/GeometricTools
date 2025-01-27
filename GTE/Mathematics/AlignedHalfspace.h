@@ -2,6 +2,8 @@
 
 #pragma once
 
+namespace gte
+{
 template <int32_t N, typename T>
 class AlignedHalfspace
 {
@@ -25,3 +27,4 @@ public:
 	bool positive;
 	T constant;
 };
+}
