@@ -59,6 +59,14 @@ public:
 		return min == max;
 	}
 	
+	T Volume() const
+	{
+		if (IsEmpty())
+			return (T)0.0;
+		else
+			return max - min;
+	}
+	
     T& operator[](std::size_t index)
     {
         switch (index)
@@ -121,6 +129,106 @@ public:
 	T min;
 	T max;
 };
+
+// Union of two sorted, disjoint sets of intervals
+// NOT TESTED
+template <typename T>
+std::vector<Interval<T>> Union(std::vector<Interval<T>> const& intervals1,
+    std::vector<Interval<T>> const& intervals2)
+{
+    std::vector<Interval<T>> merged;
+    merged.reserve(intervals1.size() + intervals2.size());
+
+    // 1) Merge step: produce a single sorted list
+    std::size_t i = 0, j = 0;
+    while (i < intervals1.size() && j < intervals2.size())
+    {
+        if (intervals1[i].min < intervals2[j].min)
+        {
+            merged.push_back(intervals1[i++]);
+        }
+        else
+        {
+            merged.push_back(intervals2[j++]);
+        }
+    }
+
+    // Append remaining intervals from whichever is not exhausted
+    while (i < intervals1.size())
+    {
+        merged.push_back(intervals1[i++]);
+    }
+    while (j < intervals2.size())
+    {
+        merged.push_back(intervals2[j++]);
+    }
+
+    // 2) Combine overlaps or adjacent intervals
+    //    Because each collection is disjoint internally, we only need to merge
+    //    where intervals from different collections may overlap or touch.
+    std::vector<Interval<T>> result;
+    result.reserve(merged.size());
+    result.push_back(merged[0]);
+
+    for (std::size_t k = 1; k < merged.size(); ++k)
+    {
+        Interval<T>& last = result.back();
+        const Interval<T>& current = merged[k];
+
+        // For closed intervals, "overlap" is:
+        // current.min <= last.max
+        // If you also merge touching intervals ([1,2], [2,3] => [1,3]),
+        // use <=. If you *don't* merge touching intervals, use <.
+        if (current.min <= last.max)
+        {
+            // They overlap or touch; extend the last interval if needed
+            if (current.max > last.max)
+            {
+                last.max = current.max;
+            }
+        }
+        else
+        {
+            // Disjoint, just add it
+            result.push_back(current);
+        }
+    }
+
+    return result;
+}
+
+template <typename T>
+T Volume(std::vector<Interval<T>> const& intervals)
+{
+	T volume = 0.0;
+	for (auto& interval : intervals)
+		volume += interval.Volume();
+		
+	return volume;
+}
+
+template <typename T>
+bool IsDisjoint(std::vector<Interval<T>> intervals)
+{
+    if (intervals.empty()) {
+        return true; // An empty collection is trivially disjoint.
+    }
+
+    // Ensure the intervals are sorted by their lower bound
+    std::sort(intervals.begin(), intervals.end(), [](const Interval<T>& a, const Interval<T>& b) {
+        return a.min < b.min;
+    });
+
+    // Check for overlaps
+    for (std::size_t i = 0; i < intervals.size() - 1; ++i)
+    {
+        if (intervals[i].max >= intervals[i + 1].min) {
+            return false; // Overlapping intervals found
+        }
+    }
+
+    return true; // No overlaps found
+}
 
 template <typename T>
 Interval<T> Intersection(Interval<T> i1, Interval<T> i2)
@@ -267,6 +375,16 @@ std::vector<Interval<T>> Difference(Interval<T> A, Interval<T> B)
     }
 
     return result;
+}
+
+template <typename T>
+bool IsEmpty(std::vector<Interval<T>> const& intervals)
+{
+	for (auto& interval : intervals)
+		if (!interval.IsEmpty())
+			return false;
+		
+	return true;
 }
 
 // From CHATGPT
