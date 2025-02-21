@@ -16,7 +16,7 @@ TEST(IntervalDifference, SingleInterval_EmptyB)
     DInterval A(1.0, 4.0);
     DInterval B; // empty by default constructor
 
-    auto result = gte::Difference(A, B);
+    auto result = DInterval::Difference(A, B);
     ASSERT_EQ(1u, result.size());
     EXPECT_EQ(1.0, result[0].min);
     EXPECT_EQ(4.0, result[0].max);
@@ -28,7 +28,7 @@ TEST(IntervalDifference, SingleInterval_EmptyA)
     DInterval A; // empty
     DInterval B(1.0, 4.0);
 
-    auto result = gte::Difference(A, B);
+    auto result = DInterval::Difference(A, B);
     EXPECT_TRUE(result.empty());
 }
 
@@ -38,7 +38,7 @@ TEST(IntervalDifference, SingleInterval_AEqualsB)
     DInterval A(1.0, 4.0);
     DInterval B(1.0, 4.0);
 
-    auto result = gte::Difference(A, B);
+    auto result = DInterval::Difference(A, B);
     EXPECT_TRUE(result.empty());
 }
 
@@ -48,7 +48,7 @@ TEST(IntervalDifference, SingleInterval_NoOverlap)
     DInterval A(1.0, 2.0);
     DInterval B(3.0, 4.0);
 
-    auto result = gte::Difference(A, B);
+    auto result = DInterval::Difference(A, B);
     ASSERT_EQ(1u, result.size());
     EXPECT_EQ(1.0, result[0].min);
     EXPECT_EQ(2.0, result[0].max);
@@ -64,7 +64,7 @@ TEST(IntervalDifference, SingleInterval_PartialOverlap)
     DInterval A(1.0, 4.0);
     DInterval B(2.0, 3.0);
 
-    auto result = gte::Difference(A, B);
+    auto result = DInterval::Difference(A, B);
     ASSERT_EQ(2u, result.size()); 
 
     // Precompute expected boundaries
@@ -87,7 +87,7 @@ TEST(IntervalDifference, SingleInterval_BCoversA)
     DInterval A(2.0, 3.0);
     DInterval B(1.0, 5.0);
 
-    auto result = gte::Difference(A, B);
+    auto result = DInterval::Difference(A, B);
     EXPECT_TRUE(result.empty());
 }
 
@@ -107,7 +107,7 @@ TEST(IntervalDifference, MultipleIntervals_SimpleCase)
     std::vector<DInterval> intervalsA { {1.0, 2.0}, {4.0, 5.0} };
     std::vector<DInterval> intervalsB { {1.5, 1.7}, {7.0, 9.0} };
 
-    auto result = gte::Difference(intervalsA, intervalsB);
+    auto result = DInterval::Difference(intervalsA, intervalsB);
 
     // Expect 3 intervals in ascending order:
     //   1) [1, next_after(1.5, -∞)]
@@ -169,7 +169,7 @@ TEST(IntervalDifference, MultipleIntervals_ComplexCase)
     };
 
     // Compute A \ B
-    auto result = gte::Difference(intervalsA, intervalsB);
+    auto result = DInterval::Difference(intervalsA, intervalsB);
 
     EXPECT_EQ(6u, result.size());
 

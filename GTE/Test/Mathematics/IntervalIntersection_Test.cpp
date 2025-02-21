@@ -16,7 +16,7 @@ TEST(IntervalIntersection, SingleInterval_EmptyB)
     DInterval A(1.0, 4.0);
     DInterval B; // empty
 
-    auto result = gte::Intersection(A, B);
+    auto result = DInterval::Intersection(A, B);
     EXPECT_TRUE(result.IsEmpty());
 }
 
@@ -26,7 +26,7 @@ TEST(IntervalIntersection, SingleInterval_EmptyA)
     DInterval A; // empty
     DInterval B(1.0, 4.0);
 
-    auto result = gte::Intersection(A, B);
+    auto result = DInterval::Intersection(A, B);
     EXPECT_TRUE(result.IsEmpty());
 }
 
@@ -36,7 +36,7 @@ TEST(IntervalIntersection, SingleInterval_AEqualsB)
     DInterval A(1.0, 4.0);
     DInterval B(1.0, 4.0);
 
-    auto result = gte::Intersection(A, B);
+    auto result = DInterval::Intersection(A, B);
     EXPECT_FALSE(result.IsEmpty());
     EXPECT_DOUBLE_EQ(1.0, result.min);
     EXPECT_DOUBLE_EQ(4.0, result.max);
@@ -48,7 +48,7 @@ TEST(IntervalIntersection, SingleInterval_NoOverlap)
     DInterval A(1.0, 2.0);
     DInterval B(3.0, 4.0);
 
-    auto result = gte::Intersection(A, B);
+    auto result = DInterval::Intersection(A, B);
     EXPECT_TRUE(result.IsEmpty());
 }
 
@@ -58,7 +58,7 @@ TEST(IntervalIntersection, SingleInterval_PartialOverlap)
     DInterval A(1.0, 4.0);
     DInterval B(2.0, 3.0);
 
-    auto result = gte::Intersection(A, B);
+    auto result = DInterval::Intersection(A, B);
     EXPECT_FALSE(result.IsEmpty());
     EXPECT_DOUBLE_EQ(2.0, result.min);
     EXPECT_DOUBLE_EQ(3.0, result.max);
@@ -71,7 +71,7 @@ TEST(IntervalIntersection, SingleInterval_BCoversA)
     DInterval A(2.0, 3.0);
     DInterval B(1.0, 5.0);
 
-    auto result = gte::Intersection(A, B);
+    auto result = DInterval::Intersection(A, B);
     EXPECT_FALSE(result.IsEmpty());
     EXPECT_DOUBLE_EQ(2.0, result.min);
     EXPECT_DOUBLE_EQ(3.0, result.max);
@@ -121,7 +121,7 @@ TEST(IntervalIntersection, MultipleIntervals_ComplexCase)
     // 5) [9, 10]
 
     // Compute A intersect B
-    auto result = gte::Intersection(intervalsA, intervalsB);
+    auto result = DInterval::Intersection(intervalsA, intervalsB);
 
     // Construct expected_intervals vector and compare with result via operator==
     std::vector<DInterval> expected_intervals = {
