@@ -3,6 +3,7 @@
 #pragma once
 
 #include <Mathematics/TIQuery.h>
+#include <Mathematics/Intersection.h>
 
 namespace gte
 {
