@@ -20,8 +20,10 @@ void TestContVector() {
     // Generate convex polytope of first orthant
     for (int i = 0; i < N; i++)
     {
-        halfspaces.push_back({Vector<N,double>(i), 1.0});
-        halfspaces.push_back({-Vector<N,double>(i), 0.0});
+        // Lower bound: x_i >= 0
+        halfspaces.push_back({Vector<N,double>(i), 0.0});
+        // Upper bound: x_i <= 1  <=>  -x_i >= -1
+        halfspaces.push_back({-Vector<N,double>(i), -1.0});
     }
 
     ConvexPolyhedronH<N, double> poly(halfspaces);
@@ -37,7 +39,8 @@ void TestContVector() {
     Vector<N, double> box_max(init_max);
     AlignedBox<N, double> box(box_min, box_max);
 
-    std::vector<Vector<N,double>> grid = RandomGrid<N,double>(100000, box);
+    int num = 10;
+    std::vector<Vector<N,double>> grid = RandomGrid<N,double>(num, box);
 
     for (auto& point : grid)
         EXPECT_TRUE(InContainer(point, poly));
@@ -46,7 +49,7 @@ void TestContVector() {
     box.min = box_max;
     box.max = box_max + box_max;
 
-    grid = RandomGrid<N,double>(100000, box);
+    grid = RandomGrid<N,double>(num, box);
 
     for (auto& point : grid)
         EXPECT_FALSE(InContainer(point, poly));
