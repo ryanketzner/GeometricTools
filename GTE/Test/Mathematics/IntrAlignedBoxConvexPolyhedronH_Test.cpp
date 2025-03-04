@@ -11,16 +11,15 @@
 using namespace gte;
 
 template <size_t N>
-void TestIntrBox() {
-    double delta = 0.001;
-    
+void TestIntrBox()
+{
     std::vector<Halfspace<N, double>> halfspaces;
 
     // Generate convex polytope of first orthant
     for (int i = 0; i < N; i++)
     {
-        halfspaces.push_back({Vector<N,double>(i), 1.0});
-        halfspaces.push_back({-Vector<N,double>(i), 0.0});
+        halfspaces.push_back({-Vector<N,double>(i), -1.0});
+        halfspaces.push_back({Vector<N,double>(i), 0.0});
     }
 
     ConvexPolyhedronH<N, double> poly(halfspaces);

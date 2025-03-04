@@ -8,7 +8,8 @@
 using namespace gte;
 
 template <size_t N>
-void TestIntrHalfspace() {
+void TestIntrHalfspace()
+{
     double delta = 0.001;
 
     std::array<double, N> init_min;
@@ -24,14 +25,14 @@ void TestIntrHalfspace() {
     Vector<N, double> origin{init_min};
     Normalize(origin, true);
     double constant = Length(box_min);
-    Halfspace<N, double> halfspace(origin, constant);
+    Halfspace<N, double> halfspace(-origin, -constant);
 
     TIQuery<double, AlignedBox<N,double>, Halfspace<N,double>> query;
 
-    halfspace.constant = Length(box_min) - delta;
+    halfspace.constant = -Length(box_min) + delta;
     EXPECT_FALSE(query(unit_box, halfspace).intersect);
 
-    halfspace.constant = Length(box_min) + delta;
+    halfspace.constant = -Length(box_min) - delta;
     EXPECT_TRUE(query(unit_box, halfspace).intersect);
 }
 

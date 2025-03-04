@@ -18,6 +18,7 @@ void TestContHalfspace() {
     init_min.fill(1.0);
     init_max.fill(2.0);
 
+    // Create test box from 1 vector to 2 vector
     Vector<N, double> box_min(init_min);
     Vector<N, double> box_max(init_max);
     AlignedBox<N, double> unit_box(box_min, box_max);
@@ -25,12 +26,12 @@ void TestContHalfspace() {
     Vector<N, double> origin{init_min};
     Normalize(origin, true);
     double constant = Length(box_max);
-    Halfspace<N, double> halfspace(origin, constant);
+    Halfspace<N, double> halfspace(-origin, -constant);
 
-    halfspace.constant = Length(box_max) - delta;
+    halfspace.constant = -Length(box_max) + delta;
     EXPECT_FALSE(InContainer(unit_box, halfspace));
 
-    halfspace.constant = Length(box_max) + delta;
+    halfspace.constant = -Length(box_max) - delta;
     EXPECT_TRUE(InContainer(unit_box, halfspace));
 }
 

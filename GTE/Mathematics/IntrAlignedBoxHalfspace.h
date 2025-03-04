@@ -29,7 +29,7 @@ namespace gte
             T dot = 0;
             for (int i = 0; i < N; i++)
             {
-                if (halfspace.normal[i] >= 0)
+                if (halfspace.normal[i] <= 0)
                     dot += halfspace.normal[i] * box.min[i];
                 else
                     dot += halfspace.normal[i] * box.max[i];
@@ -37,7 +37,7 @@ namespace gte
 
             Result result{};
 
-            if (dot <= halfspace.constant)
+            if (dot >= halfspace.constant)
                 result.intersect = true;
             else
                 result.intersect = false;

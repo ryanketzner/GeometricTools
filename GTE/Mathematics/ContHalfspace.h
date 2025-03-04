@@ -20,16 +20,16 @@ namespace gte
     template <int32_t N, typename Real>
     bool InContainer(AlignedBox<N, Real> const& box, Halfspace<N, Real> const& halfspace)
     {
-        Real dot = 0;
+        Real dotMin = 0;
         for (int i = 0; i < N; i++)
+        {
             if (halfspace.normal[i] >= 0)
-                dot += halfspace.normal[i] * box.max[i];
+                dotMin += halfspace.normal[i] * box.min[i];
             else
-                dot += halfspace.normal[i] * box.min[i];
-
-        if (dot <= halfspace.constant)
-            return true;
-        else
-            return false;
+                dotMin += halfspace.normal[i] * box.max[i];
+        }
+        
+        // For the box to be entirely inside the halfspace, the minimum dot product must be >= constant.
+        return dotMin >= halfspace.constant;
     }
 }
