@@ -21,7 +21,7 @@ namespace gte
                           Complement<Shape> const& inter) const
         {
             // The primitive intersects the complement if it isn't contained by the shape.
-            return {InContainer(primitive, inter)};
+            return {!InContainer(primitive, inter.shape)};
         }
     };
 
