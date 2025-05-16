@@ -206,6 +206,20 @@ public:
         return volume;
     }
 
+    static std::vector<T> Flatten(std::vector<Interval<T>> const& intervals)
+    {
+        std::vector<T> result;
+        result.reserve(intervals.size()*2);
+
+        for (auto& interval : intervals)
+        {
+            result.push_back(interval.min);
+            result.push_back(interval.max);
+        }
+
+        return result;
+    }
+
     static bool IsDisjoint(std::vector<Interval<T>> intervals)
     {
         if (intervals.empty()) {
