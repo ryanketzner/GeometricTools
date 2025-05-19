@@ -485,5 +485,45 @@ public:
         }
         return result;
     }
+
+        // Merge adjacent intervals if the gap between them is less than tolerance
+    static std::vector<Interval<T>> FillGaps(
+        std::vector<Interval<T>> const& intervals,
+        T tolerance)
+    {
+        std::vector<Interval<T>> result;
+        if (intervals.empty())
+        {
+            return result;
+        }
+
+        result.reserve(intervals.size());
+        result.push_back(intervals[0]);
+
+        for (std::size_t i = 1; i < intervals.size(); ++i)
+        {
+            const Interval<T>& current = intervals[i];
+            Interval<T>& last = result.back();
+
+            // compute gap between end of last and start of current
+            T gap = current.min - last.max;
+
+            if (gap < tolerance)
+            {
+                // merge: extend last interval to cover current
+                if (current.max > last.max)
+                {
+                    last.max = current.max;
+                }
+            }
+            else
+            {
+                // gap is too big—start a new interval
+                result.push_back(current);
+            }
+        }
+
+        return result;
+    }
 };
 }
