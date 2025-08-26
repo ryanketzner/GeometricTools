@@ -136,6 +136,12 @@ public:
     static std::vector<Interval<T>> Union(std::vector<Interval<T>> const& intervals1,
         std::vector<Interval<T>> const& intervals2)
     {
+
+        if (intervals1.empty())
+            return intervals2;
+        if (intervals2.empty())
+            return intervals1;
+
         std::vector<Interval<T>> merged;
         merged.reserve(intervals1.size() + intervals2.size());
 
