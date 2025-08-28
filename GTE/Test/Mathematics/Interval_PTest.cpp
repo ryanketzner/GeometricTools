@@ -205,7 +205,7 @@ TEST(IntervalPTest, Difference)
 TEST(IntervalPTest, FillGaps)
 {
     std::mt19937 rng(12345);
-    std::vector<DInterval> A = GenerateDisjointIntervals(param, -100.0, 100.0, rng);
+    std::vector<DInterval> A = GenerateDisjointIntervals_2(param, -100.0, 100.0, rng);
     
     double tolerance = 1.0;
     std::vector<DInterval> B = DInterval::FillGaps(A, tolerance); // Fill small gaps in A
