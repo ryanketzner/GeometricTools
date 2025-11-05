@@ -30,7 +30,7 @@ namespace gte
             return std::fabs(a - b) <= eps;
         }
 
-        // Same as the old util::lonBounded(). Inputs are assumed in [0,2π).
+        // Same as the old util::lonBounded(). Inputs are assumed in [0,2pi).
         // Returns true if 'lon' lies on the minor arc between [b1,b2] (inclusive of endpoints).
         template <typename Real>
         inline bool LonBounded(Real b1, Real b2, Real lon)
@@ -124,7 +124,7 @@ namespace gte
                 lat1 = p0.Lat();
                 lat2 = p1.Lat();
 
-                // Store [0,2π) longitudes for the minor-arc tests
+                // Store [0,2pi) longitudes for the minor-arc tests
                 lon1 = WrapLon0ToTwoPi<Real>(p0.Lon());
                 lon2 = WrapLon0ToTwoPi<Real>(p1.Lon());
 
@@ -228,7 +228,8 @@ namespace gte
         using Vec3 = Vector3<Real>;
         using Mat3 = Matrix<3,3,Real>;
 
-        // Construct from cartesian unit vectors (polygon must be closed. if not, close it).
+        // Construct from cartesian unit vectors. If polygon is not closed,
+        // it will be closed automatically. 
         // 'interiorHint' should be a point known to be inside the polygon.
         SphericalPolygon(std::vector<Vec3> verticesIn, Vec3 interiorHint)
         {
@@ -244,8 +245,6 @@ namespace gte
                 cart.push_back(GeographicToCart<Real>(p, (Real)1));
             InitFromCartesian(cart, GeographicToCart<Real>(interiorHint, (Real)1));
         }
-
-        // Crossing count API -------------------------------------------------------
 
         // Returns the number of edge crossings for the query ray.
         // Returns -1 if the query lies on the boundary.
@@ -289,8 +288,6 @@ namespace gte
             return out;
         }
 
-        // Containment API (parity of crossings) -----------------------------------
-
         // Return -1 (on boundary), 1 (inside), 0 (outside).
         int Contains(PointS2<Real> const& q) const
         {
@@ -321,11 +318,20 @@ namespace gte
             return out;
         }
 
-        // Data access for preprocessors -------------------------------------------
+        // Sets the orientation of the spherical polygon. The spherical
+        // polygon was initialy specified in the Initial frame I. This functions
+        // sets the orientation of the polygon to the frame N by supplying the matrix IN
+        // which transforms N-frame coordinates to I-frame coordinates.
+        void SetTransform(Mat3 const& IN)
+        {
+            mQI = mQI * IN;
+        }
+
+        // Data access for preprocessors
 
         std::vector<Real> GetLonArrayQ() const
         {
-            return mLonQ; // already in [0,2π)
+            return mLonQ; // already in [0,2pi)
         }
 
         std::vector<detail::Edge<Real>> const& GetEdgesQ() const
@@ -334,6 +340,11 @@ namespace gte
         }
 
         Mat3 const& QI() const { return mQI; }
+
+        // Origin of the spherical polygon. All vectors in this
+        // class are assumed to be specified relative to this origin.
+        // It is left public for easy access/modification.
+        Vec3 origin = Vec3{0,0,0};
 
     private:
         void InitFromCartesian(std::vector<Vec3> vertices, Vec3 interiorHint)
@@ -390,6 +401,6 @@ namespace gte
     private:
         Matrix<3,3,Real> mQI{};
         std::vector<detail::Edge<Real>> mEdgesQ;
-        std::vector<Real> mLonQ; // [0,2π), last element forced to 2π
+        std::vector<Real> mLonQ; // [0,2pi), last element forced to 2pi
     };
 }

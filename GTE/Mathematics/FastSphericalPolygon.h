@@ -23,7 +23,7 @@ namespace gte
             BuildPreprocessor();
         }
 
-        // Crossing count API -------------------------------------------------------
+        // Crossing counts
 
         // Returns the number of edge crossings for the query ray.
         // Returns -1 if the query lies on the boundary.
@@ -87,7 +87,7 @@ namespace gte
             return out;
         }
 
-        // Containment API (parity of crossings) -----------------------------------
+        // Containment
 
         int Contains(PointS2<Real> const& q) const
         {
@@ -123,7 +123,7 @@ namespace gte
 
         void BuildPreprocessor()
         {
-            // Copy & sort the [0,2π) vertex longitudes. Force the last to 2π
+            // Copy and sort the [0,2pi) vertex longitudes. Force the last to 2pi
             mSliceBounds = mBase.GetLonArrayQ();
             if (mSliceBounds.size() < 2)
             {

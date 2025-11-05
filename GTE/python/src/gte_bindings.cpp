@@ -14,6 +14,8 @@ void bind_euleranglesd(py::module& m);
 void bind_rotationd(py::module& m);
 void bind_points2(py::module& m);
 void bind_ellipsoid3d(py::module& m);
+void bind_fast_sphericalpolygon(py::module& m);
+void bind_sphericalpolygon(py::module& m);
 
 PYBIND11_MODULE(GeometricTools, m)
 {
@@ -36,6 +38,8 @@ PYBIND11_MODULE(GeometricTools, m)
     bind_rotationd(m);
     bind_points2(m);
     bind_ellipsoid3d(m);
+    bind_sphericalpolygon(m);
+    bind_fast_sphericalpolygon(m);
 
     bind_random_surface_grid<3,double>(m,"RandomSurfaceGrid3d");
     
