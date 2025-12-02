@@ -72,6 +72,29 @@ namespace gte
                 (Real)-GTE_C_PI, (Real)GTE_C_PI);
         }
 
+        // Grow the box by the specified percentage (given as decimal) in all directions
+        // TODO: See if you can use ExpandLat function also.
+        void Grow(Real percentage)
+        {
+            Real latGrow = LatLength()*percentage;
+            Real lonGrow = LonLength()*percentage;
+
+            lonMin -= lonGrow;
+            lonMin = NormalizeLon(lonMin);
+            lonMax += lonGrow;
+            lonMax = NormalizeLon(lonMax);
+            ExpandLon(lonMin);
+            ExpandLon(lonMax);
+
+            latMin -= latGrow;
+            latMax += latGrow;
+
+            if (latMin < (Real)-GTE_C_HALF_PI)
+                ToSouthPolarCap();
+            if (latMax > (Real)GTE_C_HALF_PI)
+                ToNorthPolarCap();
+        }
+
         Real Area() const
         {
             if (IsEmpty())

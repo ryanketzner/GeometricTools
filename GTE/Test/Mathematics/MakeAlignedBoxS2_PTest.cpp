@@ -2,23 +2,28 @@
 #include <iostream>
 #include <random>
 
+#include "Mathematics/Hyperellipsoid.h"
 #include "Mathematics/MakeAlignedBoxS2.h"
 #include "Mathematics/ContAlignedBoxS2.h"
 #include "Mathematics/ContRectView3.h"
 #include "Mathematics/GridHypersphere.h"
+#include "Mathematics/GridHyperellipsoid.h"
 #include "Mathematics/ContCone.h"
 
 using namespace gte;
 
+// Random tests for footprint bounding box algorithm. For a given test run, a random position 
+// vector will be generated uniformly between [100, 35000] for the object position
+// (viewpoint or cone/rectview3 vertex).
 class Fixture : public ::testing::Test 
 {
 protected:
 
-    // Generate a random position vector with altitude between 100 and 2000.
+    // Generate a random position vector with altitude between 100 and 35000.
     void SetUp() override
     {
         double min_h = radius + 100;
-        double max_h = radius + 2000;
+        double max_h = radius + 35000;
 
         seed = std::random_device{}();
         std::mt19937 gen(seed);
@@ -40,7 +45,9 @@ protected:
     static Vector3<double> dir;
     static const double radius;
     static const Sphere3<double> sphere;
+    static const Ellipsoid3<double> ellipsoid;
     static std::vector<Vector3<double>> grid;
+    static std::vector<Vector3<double>> ellipsoid_grid;
 };
 
 // Static members definition and initialization
@@ -50,8 +57,10 @@ Vector3<double> Fixture::pos;
 unsigned int Fixture::seed;
 const double Fixture::radius = 6378;
 const Sphere3<double> Fixture::sphere({Vector3<double>::Zero(), Fixture::radius});
-int num = 1000000;
+int num = 10000000;
+const Ellipsoid3<double > Fixture::ellipsoid({Vector3<double>::Zero(), Vector3<double>({6378.1370,6378.1370,6356.7523142})}); // WGS-84
 std::vector<Vector3<double>> Fixture::grid = RandomSurfaceGrid(num, Fixture::sphere, Fixture::grid_seed);
+std::vector<Vector3<double>> Fixture::ellipsoid_grid = RandomSurfaceGrid(num, Fixture::ellipsoid, Fixture::grid_seed);
 
 TEST_F(Fixture, TestHorizon)
 {
@@ -188,6 +197,103 @@ TEST_F(Fixture, TestRectView3_Oriented)
     Halfspace3<double> polar = MakePolarHalfspace3(pos,sphere);
 
     for (const auto& point : grid)
+    {
+        if (InContainer(point, polar) && InContainer(point, view))
+        {
+            PointS2<double> point_geo = CartToGeographic(point);
+            bool test = InContainer(CartToGeographic(point), box);
+
+            if (!test)
+            {
+                std::cout << "Grid Seed: " << grid_seed << std::endl;
+                std::cout << "Seed: " << seed << std::endl;
+                std::cout << "Lat: " << point_geo.Lat() << std::endl;
+                std::cout << "Lon: " << point_geo.Lon() << std::endl;
+                std::cout << "Min: " << box.latMin << ", " << box.lonMin << std::endl;
+                std::cout << "Max: " << box.latMax << ", " << box.lonMax << std::endl;
+                std::cout << "HeightAngle: " << view.GetAngleHeight() << std::endl;
+                std::cout << "WidthAngle: " << view.GetAngleWidth() << std::endl;
+                std::cout << "Az: " << az << std::endl;
+                std::cout << "El: " << el << std::endl;
+            }
+            
+            ASSERT_TRUE(test);
+        }
+    }
+}
+
+/// ELLIPSOID TESTS
+
+// Rect view with FOV angles generated from uniform distribution spanning .001
+// to Pi - .001. View is nadir-pointing. Presumably, the orthogonal complement 
+// algorithm makes roll angle of the sensor random.
+TEST_F(Fixture, TestRectView3_Ellipsoid)
+{
+    std::mt19937 gen(seed);
+    double min_angle = .001;
+    double max_angle = GTE_C_PI - .001;
+    std::uniform_real_distribution<double> angle_dist(min_angle, max_angle);
+
+    std::array<Vector3<double>,2> u_r = ComputeOrthogonalComplement(dir);
+    RectView3<double> view(u_r[0], u_r[1], pos, angle_dist(gen), angle_dist(gen));
+
+    AlignedBoxS2<double> box = MakeFootprintBoxS2(view,ellipsoid);
+    box.Grow(.25);
+    Halfspace3<double> polar = MakePolarHalfspace3(pos,ellipsoid);
+
+    for (const auto& point : ellipsoid_grid)
+    {
+        if (InContainer(point, polar) && InContainer(point, view))
+        {
+            PointS2<double> point_geo = CartToGeographic(point);
+            bool test = InContainer(CartToGeographic(point), box);
+
+            if (!test)
+            {
+                std::cout << "Grid Seed: " << grid_seed << std::endl;
+                std::cout << "Seed: " << seed << std::endl;
+                std::cout << "Lat: " << point_geo.Lat() << std::endl;
+                std::cout << "Lon: " << point_geo.Lon() << std::endl;
+                std::cout << "Min: " << box.latMin << ", " << box.lonMin << std::endl;
+                std::cout << "Max: " << box.latMax << ", " << box.lonMax << std::endl;
+                std::cout << "HeightAngle: " << view.GetAngleHeight() << std::endl;
+                std::cout << "WidthAngle: " << view.GetAngleWidth() << std::endl;
+            }
+            
+            ASSERT_TRUE(test);
+        }
+    }
+}
+
+// Rect view with FOV angles generated from uniform distribution spanning .001
+// to Pi/2 - .001. View is rotated in az/el by angle generated from uniform
+// distribution spanning -Pi/2 to Pi/2.
+TEST_F(Fixture, TestRectView3_Ellipsoid_Oriented)
+{
+    std::mt19937 gen(seed);
+    double min_angle = .001;
+    double max_angle = GTE_C_PI - .001;
+
+    std::uniform_real_distribution<double> rot_dist(-GTE_C_PI/2.0, GTE_C_PI/2.0);
+    std::uniform_real_distribution<double> angle_dist(min_angle, max_angle);
+
+    std::array<Vector3<double>,2> u_r = ComputeOrthogonalComplement(dir);
+
+    double az = rot_dist(gen);
+    AxisAngle<3,double> rot_right(u_r[0], az);
+    Vector3<double> r = Rotate(rot_right,u_r[1]);
+
+    double el = rot_dist(gen);
+    AxisAngle<3,double> rot_up(r, el);
+    Vector3<double> u = Rotate(rot_up, u_r[0]);
+
+    RectView3<double> view(u, r, pos, angle_dist(gen), angle_dist(gen));
+
+    AlignedBoxS2<double> box = MakeFootprintBoxS2(view,ellipsoid);
+    box.Grow(.25);
+    Halfspace3<double> polar = MakePolarHalfspace3(pos,ellipsoid);
+
+    for (const auto& point : ellipsoid_grid)
     {
         if (InContainer(point, polar) && InContainer(point, view))
         {

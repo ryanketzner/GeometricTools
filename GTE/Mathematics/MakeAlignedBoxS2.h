@@ -20,6 +20,8 @@
 
 namespace gte
 {
+    // Given a sphere and a point, calculate spherical 
+    // bounding box for the visible horizon as seen from that point on the sphere
     template <typename Real>
     AlignedBoxS2<Real> MakeFootprintBoxS2(Vector3<Real> const& point,
         Sphere3<Real> const& sphere)
@@ -61,6 +63,8 @@ namespace gte
         return box;
     }
 
+    // Given a sphere and rectangular FOV, calculate spherical 
+    // bounding box for the FOV footprint on the sphere
     template <typename Real>
     AlignedBoxS2<Real> MakeFootprintBoxS2(RectView3<Real> const& view, 
         Sphere3<Real> const& sphere)
@@ -217,7 +221,7 @@ namespace gte
     }
 
     template <typename Real>
-    AlignedBoxS2<Real> MakeFootprintBoxS2(RectView3<Real> const& view, 
+    AlignedBoxS2<Real> MakeFootprintBoxS2_Old(RectView3<Real> const& view, 
         Ellipsoid3<Real> const& ellipsoid)
     {
         // Get the rays of the rectangular view
@@ -259,6 +263,19 @@ namespace gte
     }
 
     template <typename Real>
+    AlignedBoxS2<Real> MakeFootprintBoxS2(RectView3<Real> const& view, 
+        Ellipsoid3<Real> const& ellipsoid)
+    {
+        Real a = (ellipsoid.extent[0] + ellipsoid.extent[1])/2.0;
+        Real b = ellipsoid.extent[2];
+        Real r = (2.0*a + b)/3.0;
+        Sphere3<Real> mean_sphere({ellipsoid.center, r});
+
+        return MakeFootprintBoxS2(view, mean_sphere);
+    }
+
+
+    template <typename Real>
     AlignedBoxS2<Real> MakeFootprintBoxS2(Cone3<Real> const& cone, 
         Ellipsoid3<Real> const& ellipsoid)
     {
@@ -267,6 +284,10 @@ namespace gte
         return MakeFootprintBoxS2(view, ellipsoid);
     }
 
+    // Given a sphere and a conical FOV, calculate spherical 
+    // bounding box for the FOV footprint on the sphere. This is
+    // done by calculating a rectangular FOV which just bounds the conical
+    // FOV and then calling the angular routine.
     template <typename Real>
     AlignedBoxS2<Real> MakeFootprintBoxS2(Cone3<Real> const& cone, 
         Sphere3<Real> const& sphere)

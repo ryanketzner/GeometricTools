@@ -63,6 +63,19 @@ namespace gte
         Real lat,lon;
     };
 
+    // Normalize lon to the range [-Pi,Pi]
+    template <typename Real>
+    Real NormalizeLon(Real lon_in)
+    {
+        Real lon_out = fmod(lon_in, GTE_C_TWO_PI);
+        if (lon_out > GTE_C_PI)
+            lon_out -= GTE_C_TWO_PI;
+        else if (lon_out < -GTE_C_PI)
+            lon_out += GTE_C_TWO_PI;
+
+        return lon_out;
+    }
+
     // Takes arbitrary cartesian vector v as input
     // returns the longitude and latitude of v, which is guaranteed to be in
     // the range [-Pi/2, Pi/2] and [-Pi to Pi]
