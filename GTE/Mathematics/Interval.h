@@ -226,6 +226,21 @@ public:
         return result;
     }
 
+    static bool IsSorted(std::vector<Interval<T>> const& intervals)
+    {
+        if (intervals.size() < 2)
+            return true;
+
+        for (std::size_t i = 1; i < intervals.size(); ++i)
+        {
+            if (intervals[i].min < intervals[i - 1].min)
+                return false;
+        }
+
+        return true;
+    }
+
+
     static bool IsDisjoint(std::vector<Interval<T>> intervals)
     {
         if (intervals.empty()) {
@@ -491,6 +506,37 @@ public:
         }
         return result;
     }
+
+        // FROM CHATGPT MAR 11, 2026
+    static std::vector<Interval<T>> SymmetricDifference(Interval<T> A, Interval<T> B)
+    {
+        auto left = Difference(A, B);   // A \ B
+        auto right = Difference(B, A);  // B \ A
+        return Union(left, right);
+    }
+
+    // FROM CHATGPT MAR 11, 2026
+    static std::vector<Interval<T>> SymmetricDifference(
+        std::vector<Interval<T>> const& intervalsA,
+        std::vector<Interval<T>> const& intervalsB)
+    {
+        auto left = Difference(intervalsA, intervalsB);   // A \ B
+        auto right = Difference(intervalsB, intervalsA);  // B \ A
+        return Union(left, right);
+    }
+
+    static std::vector<Interval<T>> RemoveSmallerThan(std::vector<Interval<T>> const& intervals, T val)
+    {
+        std::vector<Interval<T>> result;
+        result.reserve(intervals.size());
+        for (const auto& interval : intervals)
+        {
+            if (interval.Volume() >= val)
+                result.push_back(interval);
+        }
+
+        return result;
+    }   
 
         // Merge adjacent intervals if the gap between them is less than tolerance
     static std::vector<Interval<T>> FillGaps(

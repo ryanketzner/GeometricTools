@@ -41,6 +41,16 @@ namespace gte
     		return pow(M_PI, N / 2.0) / std::tgamma(gamma_input) * pow(radius, N);
         }
 
+        // Addon to geometrictools
+        AlignedBox<N, Real> Bounds() const
+        {
+        	AlignedBox<N, Real> box;
+        	box.min = center - radius*Vector<N, Real>::Ones();
+        	box.max = center + radius*Vector<N, Real>::Ones();
+        	return box;
+        }
+
+
         // Public member access.
         Vector<N, Real> center;
         Real radius;
