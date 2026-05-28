@@ -132,16 +132,74 @@ TEST(IntervalDifference, MultipleIntervals_SimpleCase)
     EXPECT_EQ(5.0, result[2].max);
 }
 
-TEST(IntervalDifference, MultipleIntervals_ComplexCase)
+// Test: Union of two non-overlapping intervals should return both intervals unchanged
+TEST(IntervalUnion, SingleInterval_NoOverlap)
+{
+    DInterval A(1.0, 2.0); // First interval
+    DInterval B(3.0, 4.0); // Second interval, does not overlap with A
+    std::vector<DInterval> intervalsA { A };
+    std::vector<DInterval> intervalsB { B };
+
+    // Perform union
+    auto result = DInterval::Union(intervalsA, intervalsB);
+    // Should return both intervals, unchanged
+    ASSERT_EQ(2u, result.size());
+    EXPECT_EQ(1.0, result[0].min);
+    EXPECT_EQ(2.0, result[0].max);
+    EXPECT_EQ(3.0, result[1].min);
+    EXPECT_EQ(4.0, result[1].max);
+}
+
+// Test: Union of two overlapping intervals should merge them into one
+TEST(IntervalUnion, SingleInterval_Overlap)
+{
+    DInterval A(1.0, 3.0); // First interval
+    DInterval B(2.0, 4.0); // Overlaps with A
+    std::vector<DInterval> intervalsA { A };
+    std::vector<DInterval> intervalsB { B };
+
+    // Perform union
+    auto result = DInterval::Union(intervalsA, intervalsB);
+    // Should merge into a single interval [1, 4]
+    ASSERT_EQ(1u, result.size());
+    EXPECT_EQ(1.0, result[0].min);
+    EXPECT_EQ(4.0, result[0].max);
+}
+
+// Test: Union of multiple intervals, including infinite bounds and overlaps
+TEST(IntervalUnion, MultipleIntervals_ComplexCase)
+{
+    // Some intervals have infinite bounds, some overlap
+    std::vector<DInterval> intervalsA {
+        DInterval(-std::numeric_limits<double>::infinity(), -11.0), // Left-infinite
+        DInterval(-10.0, -5.0),
+        DInterval(2.0, 3.0)
+    };
+
+    std::vector<DInterval> intervalsB {
+        DInterval(-12.0, -10.5),
+        DInterval(-6.0, -4.0),
+        DInterval(2.5, 3.5)
+    };
+
+    // Perform union
+    auto result = DInterval::Union(intervalsA, intervalsB);
+    // Should merge overlapping and adjacent intervals
+    ASSERT_EQ(3u, result.size());
+
+    std::vector<DInterval> expected_intervals = {
+        DInterval(-std::numeric_limits<double>::infinity(), -10.5), // Merged leftmost
+        DInterval(-10.0, -4.0), // Merged middle
+        DInterval(2.0, 3.5)     // Merged rightmost
+    };
+
+    ASSERT_EQ(expected_intervals, result);  
+}
+
+// Test: Difference of two complex interval collections, checks all edge cases
+TEST(IntervalIntersection, MultipleIntervals_ComplexCase)
 {
     // intervalsA (7 intervals), sorted and disjoint
-    //  1) [-∞,  -11]
-    //  2) [-10, -5 ]
-    //  3) [ -3, -1 ]
-    //  4) [  0,  1 ]
-    //  5) [  2,  3 ]
-    //  6) [  5,  6 ]
-    //  7) [  7, 10 ]
     std::vector<DInterval> intervalsA {
         DInterval(-std::numeric_limits<double>::infinity(), -11.0),
         DInterval(-10.0, -5.0),
@@ -153,12 +211,6 @@ TEST(IntervalDifference, MultipleIntervals_ComplexCase)
     };
 
     // intervalsB (6 intervals), sorted and disjoint
-    //  1) [-∞,  -12]
-    //  2) [-11, -6 ]
-    //  3) [ -3,  -2 ]
-    //  4) [  2,   3 ]
-    //  5) [  9,  12 ]
-    //  6) [12.1, +∞]
     std::vector<DInterval> intervalsB {
         DInterval(-std::numeric_limits<double>::infinity(), -12.0),
         DInterval(-11.0, -6.0),
@@ -168,20 +220,20 @@ TEST(IntervalDifference, MultipleIntervals_ComplexCase)
         DInterval(12.1,  std::numeric_limits<double>::infinity())
     };
 
-    // Compute A \ B
+    // Compute A \ B and check all resulting intervals
     auto result = DInterval::Difference(intervalsA, intervalsB);
 
+    // Should produce 6 intervals after removing overlaps
     EXPECT_EQ(6u, result.size());
 
     // For exact boundary checks, define helpful references:
-    double neg12_plus = std::nextafter(-12.0, +std::numeric_limits<double>::infinity());
-    double neg11_minus = std::nextafter(-11.0, -std::numeric_limits<double>::infinity());
-    double neg6_plus   = std::nextafter(-6.0,  +std::numeric_limits<double>::infinity());
-    double neg2_plus   = std::nextafter(-2.0,  +std::numeric_limits<double>::infinity());
-    double nine_minus  = std::nextafter( 9.0,  -std::numeric_limits<double>::infinity());
+    double neg12_plus = std::nextafter(-12.0, +std::numeric_limits<double>::infinity()); // Just above -12
+    double neg11_minus = std::nextafter(-11.0, -std::numeric_limits<double>::infinity()); // Just below -11
+    double neg6_plus   = std::nextafter(-6.0,  +std::numeric_limits<double>::infinity()); // Just above -6
+    double neg2_plus   = std::nextafter(-2.0,  +std::numeric_limits<double>::infinity()); // Just above -2
+    double nine_minus  = std::nextafter( 9.0,  -std::numeric_limits<double>::infinity()); // Just below 9
 
-    // Check them individually
-    
+    // Check each resulting interval matches expected boundaries
     // 1) [neg12_plus, neg11_minus]
     EXPECT_EQ(neg12_plus, result[0].min);
     EXPECT_EQ(neg11_minus, result[0].max);
@@ -206,7 +258,7 @@ TEST(IntervalDifference, MultipleIntervals_ComplexCase)
     EXPECT_EQ(7.0,       result[5].min);
     EXPECT_EQ(nine_minus, result[5].max);
 
-    // Finally, construct an 'expected_intervals' vector and compare with 'result' via operator==
+    // Build expected intervals for final comparison
     std::vector<DInterval> expected_intervals = {
     	DInterval(neg12_plus, neg11_minus),
         DInterval(neg6_plus, -5.0),

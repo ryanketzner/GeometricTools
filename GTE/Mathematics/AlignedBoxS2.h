@@ -5,6 +5,8 @@
 #include <array>
 #include "Mathematics/Math.h"
 #include "Mathematics/PointS2.h"
+#include "Mathematics/AlignedHalfspaceLon.h"
+#include "Mathematics/AlignedHalfspaceLat.h"
 
 namespace gte
 {
@@ -303,6 +305,36 @@ namespace gte
         Real latMin, latMax, lonMin, lonMax;
 
     public:
+        /**
+         * @brief Get the longitude halfspaces that bound this box.
+         * 
+         * Returns two halfspaces: one for the minimum longitude boundary (left/west)
+         * and one for the maximum longitude boundary (right/east).
+         * 
+         * @return Array of 2 longitude halfspaces [minLon, maxLon].
+         */
+        std::array<AlignedHalfspaceLon<Real>, 2> GetAlignedHalfspacesLon() const
+        {
+            AlignedHalfspaceLon<Real> minLonHalfspace(lonMin, false);  // left/west side
+            AlignedHalfspaceLon<Real> maxLonHalfspace(lonMax, true);   // right/east side
+            return {minLonHalfspace, maxLonHalfspace};
+        }
+
+        /**
+         * @brief Get the latitude halfspaces that bound this box.
+         * 
+         * Returns two halfspaces: one for the minimum latitude boundary (south)
+         * and one for the maximum latitude boundary (north).
+         * 
+         * @return Array of 2 latitude halfspaces [minLat, maxLat].
+         */
+        std::array<AlignedHalfspaceLat<Real>, 2> GetAlignedHalfspacesLat() const
+        {
+            AlignedHalfspaceLat<Real> minLatHalfspace(latMin, false);  // south side
+            AlignedHalfspaceLat<Real> maxLatHalfspace(latMax, true);   // north side
+            return {minLatHalfspace, maxLatHalfspace};
+        }
+
         // Comparisons to support sorted containers
 
         bool operator==(AlignedBoxS2 const& box) const
